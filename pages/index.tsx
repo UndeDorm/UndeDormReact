@@ -3,6 +3,7 @@ import { auth } from '../firebase';
 import styles from '../styles/Home.module.css';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useState } from 'react';
+import router from 'next/router';
 
 export default function Home() {
   const [isUserLoaded, setIsUserLoaded] = useState(false);
@@ -21,6 +22,14 @@ export default function Home() {
     }
     setIsUserLoaded(true);
   });
+
+  const onSignIn = () => {
+    router.push('/sign-in');
+  };
+
+  const onSignUp = () => {
+    router.push('/sign-up');
+  };
 
   return (
     <div className={styles.container}>
@@ -66,6 +75,12 @@ export default function Home() {
               Instantly deploy your Next.js site to a public URL with Vercel.
             </p>
           </a>
+          <button onClick={onSignIn} className={styles.card}>
+            <p>Sign In</p>
+          </button>
+          <button onClick={onSignUp} className={styles.card}>
+            <p>Sign Up</p>
+          </button>
           <button onClick={signOut} className={styles.card}>
             <p>Log out</p>
           </button>
