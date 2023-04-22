@@ -1,18 +1,33 @@
 import Head from 'next/head';
-import { provider, auth } from '../firebase';
+import { provider, auth, firebaseDb } from '../firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import router from 'next/router';
+import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 
 export default function SignInPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const email = useRef<string>('');
+  const password = useRef<string>('');
+  const firstName = useRef<string>('');
+  const lastName = useRef<string>('');
 
   const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
       .then((result) => {
-        router.push('/');
+        setDoc(doc(firebaseDb, 'users', result.user.uid), {
+          firstName: result.user.displayName,
+          lastName: '',
+          isOwner: false,
+          id: result.user.uid,
+          dateOfBirth: Date.now() - 1000 * 60 * 60 * 24 * 365 * 18,
+        })
+          .then(() => {
+            router.push('/');
+          })
+          .catch((error) => {
+            console.warn('[SignUp]', error);
+          });
       })
       .catch((error) => {
         console.warn('[SignIn]', error);
@@ -21,20 +36,36 @@ export default function SignInPage() {
 
   const signUpWithCredentials = () => {
     // verify that email string resembles an email
-    if (!email.includes('@') || !email.includes('.') || !(email.length > 5)) {
+    if (
+      !email.current.includes('@') ||
+      !email.current.includes('.') ||
+      !(email.current.length > 5)
+    ) {
       alert('Please enter a valid email address.');
       return;
     }
 
     // verify that password is at least 6 characters
-    if (password.length < 6) {
+    if (password.current.length < 6) {
       alert('Please enter a password with at least 6 characters.');
       return;
     }
 
-    createUserWithEmailAndPassword(auth, email, password).then(
+    createUserWithEmailAndPassword(auth, email.current, password.current).then(
       (userCredential) => {
-        router.push('/');
+        setDoc(doc(firebaseDb, 'users', userCredential.user.uid), {
+          firstName: firstName.current,
+          lastName: lastName.current,
+          isOwner: false,
+          id: userCredential.user.uid,
+          dateOfBirth: Date.now() - 1000 * 60 * 60 * 24 * 365 * 18,
+        })
+          .then(() => {
+            router.push('/');
+          })
+          .catch((error) => {
+            console.warn('[SignUp]', error);
+          });
       }
     );
   };
@@ -52,17 +83,28 @@ export default function SignInPage() {
         <input
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          // value={email.current}
+          onChange={(e) => (email.current = e.target.value)}
           className={styles.input}
         />
         <input
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          // value={password.current}
+          onChange={(e) => (password.current = e.target.value)}
           className={styles.input}
         />
+        <input
+          placeholder="First Name"
+          className={styles.input}
+          onChange={(e) => (firstName.current = e.target.value)}
+        />
+        <input
+          placeholder="Last Name"
+          className={styles.input}
+          onChange={(e) => (lastName.current = e.target.value)}
+        />
+
         <button onClick={signUpWithCredentials} className={styles.card}>
           <p>Sign Up</p>
         </button>

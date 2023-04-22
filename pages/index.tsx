@@ -1,9 +1,10 @@
 import Head from 'next/head';
-import { auth } from '../firebase';
+import { auth, firebaseDb } from '../firebase';
 import styles from '../styles/Home.module.css';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useState } from 'react';
 import router from 'next/router';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function Home() {
   const [isUserLoaded, setIsUserLoaded] = useState(false);
@@ -18,7 +19,20 @@ export default function Home() {
   onAuthStateChanged(auth, (user) => {
     setIsUserLoaded(false);
     if (user) {
-      setUsername(user.uid ?? 'nume');
+      const docRef = doc(firebaseDb, 'users', user.uid);
+      getDoc(docRef)
+        .then((doc) => {
+          if (doc.exists()) {
+            setUsername(doc.data().firstName);
+          } else {
+            setUsername('Guest');
+          }
+        })
+        .catch((error) => {
+          console.warn('[Home]', error);
+        });
+    } else {
+      setUsername('Guest');
     }
     setIsUserLoaded(true);
   });
