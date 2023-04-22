@@ -1,7 +1,59 @@
 import Head from 'next/head';
+import { provider, auth } from '../firebase';
 import styles from '../styles/Home.module.css';
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import { useState } from 'react';
 
 export default function Home() {
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
+  const [username, setUsername] = useState('Guest');
+
+  const signInWithGoogle = () => {
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        // This gives you a Google Access Token. You can use it to access the Google API.
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential?.accessToken;
+        // The signed-in user info.
+        const user = result.user;
+        console.log(result);
+        // setUsername(result.user.displayName ?? 'nume');
+        // IdP data available using getAdditionalUserInfo(result)
+        // ...
+      })
+      .catch((error) => {
+        setUsername('Eroare');
+        console.warn('TEST', error);
+      });
+  };
+
+  const signOut = () => {
+    auth.signOut().then(() => {
+      setUsername('Guest');
+    });
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    setIsUserLoaded(false);
+    if (user) {
+      // User is signed in, see docs for a list of available properties
+      // https://firebase.google.com/docs/reference/js/firebase.User
+      setUsername(user.displayName ?? 'nume');
+      // setIsUserLoaded(true);
+      // ...
+    } else {
+      // User is signed out
+      // ...
+      // setUsername('Guest');
+    }
+    setIsUserLoaded(true);
+  });
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,9 +63,13 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="">UndeDorm</a>
-        </h1>
+        {isUserLoaded ? (
+          <h1 className={styles.title}>
+            Hello, {username}! Welcome to <a href="">UndeDorm</a>
+          </h1>
+        ) : (
+          <h1 className={styles.title}>Loading</h1>
+        )}
 
         <div className={styles.grid}>
           <a href="/profile" className={styles.card}>
@@ -42,6 +98,13 @@ export default function Home() {
               Instantly deploy your Next.js site to a public URL with Vercel.
             </p>
           </a>
+
+          <button onClick={signInWithGoogle} className={styles.card}>
+            <p>Log in with Google</p>
+          </button>
+          <button onClick={signOut} className={styles.card}>
+            <p>Log out</p>
+          </button>
         </div>
       </main>
     </div>
