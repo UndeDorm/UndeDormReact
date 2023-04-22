@@ -1,7 +1,36 @@
 import Head from 'next/head';
+import { auth } from '../firebase';
 import styles from '../styles/Home.module.css';
+import { onAuthStateChanged } from 'firebase/auth';
+import { useState } from 'react';
+import router from 'next/router';
 
 export default function Home() {
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
+  const [username, setUsername] = useState('Guest');
+
+  const signOut = () => {
+    auth.signOut().then(() => {
+      setUsername('Guest');
+    });
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    setIsUserLoaded(false);
+    if (user) {
+      setUsername(user.uid ?? 'nume');
+    }
+    setIsUserLoaded(true);
+  });
+
+  const onSignIn = () => {
+    router.push('/sign-in');
+  };
+
+  const onSignUp = () => {
+    router.push('/sign-up');
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,9 +40,13 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="">UndeDorm</a>
-        </h1>
+        {isUserLoaded ? (
+          <h1 className={styles.title}>
+            Hello, {username}! Welcome to <a href="">UndeDorm</a>
+          </h1>
+        ) : (
+          <h1 className={styles.title}>Loading</h1>
+        )}
 
         <div className={styles.grid}>
           <a href="/profile" className={styles.card}>
@@ -42,6 +75,15 @@ export default function Home() {
               Instantly deploy your Next.js site to a public URL with Vercel.
             </p>
           </a>
+          <button onClick={onSignIn} className={styles.card}>
+            <p>Sign In</p>
+          </button>
+          <button onClick={onSignUp} className={styles.card}>
+            <p>Sign Up</p>
+          </button>
+          <button onClick={signOut} className={styles.card}>
+            <p>Log out</p>
+          </button>
         </div>
       </main>
     </div>
