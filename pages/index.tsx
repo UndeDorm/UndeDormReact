@@ -26,7 +26,7 @@ export default function Home() {
             <p>Learn about Next.js in an interactive course with quizzes!</p>
           </a>
 
-          <a href="/hotel-list" className={styles.card}>
+          <a href="/hotels" className={styles.card}>
             <h2>Cauta hotel &rarr;</h2>
             <p>Discover and deploy boilerplate example Next.js projects.</p>
           </a>
