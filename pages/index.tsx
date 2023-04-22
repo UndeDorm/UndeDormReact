@@ -1,30 +1,12 @@
 import Head from 'next/head';
-import { provider, auth } from '../firebase';
+import { auth } from '../firebase';
 import styles from '../styles/Home.module.css';
-import {
-  getAuth,
-  signInWithPopup,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-} from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useState } from 'react';
 
 export default function Home() {
   const [isUserLoaded, setIsUserLoaded] = useState(false);
   const [username, setUsername] = useState('Guest');
-
-  const signInWithGoogle = () => {
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        const token = credential?.accessToken;
-        const user = result.user;
-      })
-      .catch((error) => {
-        setUsername('Eroare');
-        console.warn('TEST', error);
-      });
-  };
 
   const signOut = () => {
     auth.signOut().then(() => {
@@ -35,15 +17,7 @@ export default function Home() {
   onAuthStateChanged(auth, (user) => {
     setIsUserLoaded(false);
     if (user) {
-      // User is signed in, see docs for a list of available properties
-      // https://firebase.google.com/docs/reference/js/firebase.User
-      setUsername(user.displayName ?? 'nume');
-      // setIsUserLoaded(true);
-      // ...
-    } else {
-      // User is signed out
-      // ...
-      // setUsername('Guest');
+      setUsername(user.uid ?? 'nume');
     }
     setIsUserLoaded(true);
   });
@@ -92,10 +66,6 @@ export default function Home() {
               Instantly deploy your Next.js site to a public URL with Vercel.
             </p>
           </a>
-
-          <button onClick={signInWithGoogle} className={styles.card}>
-            <p>Log in with Google</p>
-          </button>
           <button onClick={signOut} className={styles.card}>
             <p>Log out</p>
           </button>
