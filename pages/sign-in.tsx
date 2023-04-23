@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { provider, auth } from '../firebase';
+import { provider, auth } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { useState } from 'react';

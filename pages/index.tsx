@@ -1,10 +1,11 @@
 import Head from 'next/head';
-import { auth, firebaseDb } from '../firebase';
+import { auth, firebaseDb } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useState } from 'react';
 import router from 'next/router';
 import { doc, getDoc } from 'firebase/firestore';
+import Link from 'next/link';
 
 export default function Home() {
   const [isUserLoaded, setIsUserLoaded] = useState(false);
@@ -63,22 +64,22 @@ export default function Home() {
         )}
 
         <div className={styles.grid}>
-          <a href="/profile" className={styles.card}>
+          <Link href="/profile" className={styles.card}>
             <h2>Profil &rarr;</h2>
             <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+          </Link>
 
-          <a href="/reservations" className={styles.card}>
+          <Link href="/reservations" className={styles.card}>
             <h2>Rezervari &rarr;</h2>
             <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+          </Link>
 
-          <a href="/hotels" className={styles.card}>
+          <Link href="/hotels" className={styles.card}>
             <h2>Cauta hotel &rarr;</h2>
             <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
@@ -88,7 +89,8 @@ export default function Home() {
             <p>
               Instantly deploy your Next.js site to a public URL with Vercel.
             </p>
-          </a>
+          </Link>
+
           <button onClick={onSignIn} className={styles.card}>
             <p>Sign In</p>
           </button>

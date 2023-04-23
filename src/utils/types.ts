@@ -25,7 +25,7 @@ export interface Room {
 
 export interface ReservationRequest {
   id: string;
-  requestStatus: 'pending' | 'accepted' | 'rejected';
+  requestStatus: ReservationStatus;
   roomId: string;
   hotelId: string;
   userId: string;
@@ -33,15 +33,17 @@ export interface ReservationRequest {
   endDate: number;
 }
 
-export interface Reservation{
+export interface Reservation {
   id: string;
-  reservationStatus: 'pending' | 'accepted' | 'rejected';
+  reservationStatus: ReservationStatus;
   reservationRequestId: string;
 }
 
-export interface Message{
+export interface Message {
   reservationId: string;
   senderId: string;
   timestamp: number;
   text: string;
 }
+
+export type ReservationStatus = 'pending' | 'accepted' | 'rejected';

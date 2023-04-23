@@ -1,10 +1,11 @@
 import Head from 'next/head';
-import { provider, auth, firebaseDb } from '../firebase';
+import { provider, auth, firebaseDb } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import router from 'next/router';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { BasicUser } from '../src/utils/types';
+import { addUser } from '../src/firebase/database';
 
 export default function SignInPage() {
   const email = useRef<string>('');
@@ -15,19 +16,21 @@ export default function SignInPage() {
   const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
       .then((result) => {
-        setDoc(doc(firebaseDb, 'users', result.user.uid), {
-          firstName: result.user.displayName,
+        const user: BasicUser = {
+          firstName: result.user.displayName ?? '',
           lastName: '',
           isOwner: false,
           id: result.user.uid,
           dateOfBirth: Date.now() - 1000 * 60 * 60 * 24 * 365 * 18,
-        })
-          .then(() => {
-            router.push('/');
-          })
-          .catch((error) => {
-            console.warn('[SignUp]', error);
-          });
+        };
+        const onSuccess = () => {
+          router.push('/');
+        };
+        const onFailure = (error: any) => {
+          console.warn('[SignUp]', error);
+        };
+
+        addUser({ user, onSuccess, onFailure });
       })
       .catch((error) => {
         console.warn('[SignIn]', error);
@@ -51,23 +54,27 @@ export default function SignInPage() {
       return;
     }
 
-    createUserWithEmailAndPassword(auth, email.current, password.current).then(
-      (userCredential) => {
-        setDoc(doc(firebaseDb, 'users', userCredential.user.uid), {
+    createUserWithEmailAndPassword(auth, email.current, password.current)
+      .then((userCredential) => {
+        const user: BasicUser = {
           firstName: firstName.current,
           lastName: lastName.current,
           isOwner: false,
           id: userCredential.user.uid,
           dateOfBirth: Date.now() - 1000 * 60 * 60 * 24 * 365 * 18,
-        })
-          .then(() => {
-            router.push('/');
-          })
-          .catch((error) => {
-            console.warn('[SignUp]', error);
-          });
-      }
-    );
+        };
+        const onSuccess = () => {
+          router.push('/');
+        };
+        const onFailure = (error: any) => {
+          console.warn('[SignUp]', error);
+        };
+
+        addUser({ user, onSuccess, onFailure });
+      })
+      .catch((error) => {
+        console.warn('[SignUp]', error);
+      });
   };
 
   return (
@@ -83,14 +90,12 @@ export default function SignInPage() {
         <input
           type="email"
           placeholder="Email"
-          // value={email.current}
           onChange={(e) => (email.current = e.target.value)}
           className={styles.input}
         />
         <input
           type="password"
           placeholder="Password"
-          // value={password.current}
           onChange={(e) => (password.current = e.target.value)}
           className={styles.input}
         />

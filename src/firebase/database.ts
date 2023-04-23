@@ -1,5 +1,5 @@
 import { doc, setDoc } from 'firebase/firestore';
-import { BasicUser } from '../utils/types';
+import { BasicUser, Hotel, Room, ReservationRequest } from '../utils/types';
 import { firebaseDb } from './firebase';
 
 export const addUser = ({
@@ -27,7 +27,63 @@ export const addHotel = ({
   onSuccess,
   onFailure,
 }: {
-  hotel: any;
+  hotel: Hotel;
   onSuccess: () => void;
   onFailure: (error: any) => void;
-}) => {};
+}) => {
+  setDoc(doc(firebaseDb, 'hotels', hotel.id), {
+    name: hotel.name,
+    location: hotel.location,
+    images: hotel.images,
+    description: hotel.description,
+    ownerId: hotel.ownerId,
+  })
+    .then(onSuccess)
+    .catch(onFailure);
+};
+
+export const addRoom = ({
+  room,
+  onSuccess,
+  onFailure,
+}: {
+  room: Room;
+  onSuccess: () => void;
+  onFailure: (error: any) => void;
+}) => {
+  setDoc(doc(firebaseDb, 'rooms', room.id), {
+    benefits: room.benefits,
+    pricePerNight: room.pricePerNight,
+    beds: room.beds,
+    hotelId: room.hotelId,
+  })
+    .then(onSuccess)
+    .catch(onFailure);
+};
+
+export const addReservationRequest = ({
+  reservationRequest,
+  onSuccess,
+  onFailure,
+}: {
+  reservationRequest: ReservationRequest;
+  onSuccess: () => void;
+  onFailure: (error: any) => void;
+}) => {
+  Promise.all([
+    setDoc(doc(firebaseDb, 'reservationRequests', reservationRequest.id), {
+      requestStatus: reservationRequest.requestStatus,
+      roomId: reservationRequest.roomId,
+      hotelId: reservationRequest.hotelId,
+      userId: reservationRequest.userId,
+      startDate: reservationRequest.startDate,
+      endDate: reservationRequest.endDate,
+    }),
+    setDoc(doc(firebaseDb, 'reservations', reservationRequest.id), {
+      reservationStatus: reservationRequest.requestStatus,
+      reservationRequestId: reservationRequest.id,
+    }),
+  ])
+    .then(onSuccess)
+    .catch(onFailure);
+};
