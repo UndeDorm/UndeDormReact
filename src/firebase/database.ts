@@ -1,4 +1,4 @@
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { BasicUser, Hotel, Room, ReservationRequest } from '../utils/types';
 import { firebaseDb } from './firebase';
 
@@ -20,6 +20,17 @@ export const addUser = ({
   })
     .then(onSuccess)
     .catch(onFailure);
+};
+
+export const getUser = async (id: string) => {
+  const docRef = doc(firebaseDb, 'users', id);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data() as BasicUser;
+  } else {
+    return null;
+  }
 };
 
 export const addHotel = ({
