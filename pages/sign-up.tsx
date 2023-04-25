@@ -12,6 +12,7 @@ export default function SignInPage() {
   const password = useRef<string>('');
   const firstName = useRef<string>('');
   const lastName = useRef<string>('');
+  const dateOfBirth = useRef<Date>(new Date());
 
   const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
@@ -21,7 +22,7 @@ export default function SignInPage() {
           lastName: '',
           isOwner: false,
           id: result.user.uid,
-          dateOfBirth: Date.now() - 1000 * 60 * 60 * 24 * 365 * 18,
+          dateOfBirth: dateOfBirth.current.getTime(),
         };
         const onSuccess = () => {
           router.push('/');
@@ -61,7 +62,7 @@ export default function SignInPage() {
           lastName: lastName.current,
           isOwner: false,
           id: userCredential.user.uid,
-          dateOfBirth: Date.now() - 1000 * 60 * 60 * 24 * 365 * 18,
+          dateOfBirth: dateOfBirth.current.getTime(),
         };
         const onSuccess = () => {
           router.push('/');
@@ -109,7 +110,12 @@ export default function SignInPage() {
           className={styles.input}
           onChange={(e) => (lastName.current = e.target.value)}
         />
-
+        <input
+          type="date"
+          placeholder="Date Of Birth"
+          className={styles.input}
+          onChange={(e) => (dateOfBirth.current = new Date(e.target.value))}
+        />
         <button onClick={signUpWithCredentials} className={styles.card}>
           <p>Sign Up</p>
         </button>
