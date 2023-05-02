@@ -26,6 +26,11 @@ export default function SignInPage() {
       })
       .catch((error) => {
         console.warn('[SignIn]', error);
+        if (error.code === 'auth/user-not-found') {
+          alert('Account not found!');
+        } else if (error.code === 'auth/wrong-password') {
+          alert('Incorrect password!');
+        }
       });
   };
 
