@@ -92,6 +92,8 @@ export default function Home() {
           </div>
         )}
 
+        {!isUserLoaded && <div className={styles.grid}></div>}
+
         {isUserLoaded && (
           <div className={styles.grid}>
             {username !== 'Guest' && (
