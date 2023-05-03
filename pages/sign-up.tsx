@@ -14,7 +14,7 @@ export default function SignInPage() {
   const lastName = useRef<string>('');
   const dateOfBirth = useRef<Date>(new Date());
 
-  const signInWithGoogle = () => {
+  const signUpWithGoogle = () => {
     signInWithPopup(auth, provider)
       .then((result) => {
         const user: BasicUser = {
@@ -120,7 +120,7 @@ export default function SignInPage() {
           <p>Sign Up</p>
         </button>
 
-        <button onClick={signInWithGoogle} className={styles.card}>
+        <button onClick={signUpWithGoogle} className={styles.card}>
           <p>Sign Up with Google</p>
         </button>
       </main>

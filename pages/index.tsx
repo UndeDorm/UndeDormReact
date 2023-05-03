@@ -61,7 +61,7 @@ export default function Home() {
           </h1>
         )}
 
-        {isUserLoaded && username != 'Guest' && (
+        {isUserLoaded && username !== 'Guest' && (
           <div className={styles.grid}>
             <Link href="/profile" className={styles.card}>
               <h2>Profil &rarr;</h2>
