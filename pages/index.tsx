@@ -10,10 +10,12 @@ import { getUser } from '../src/firebase/database';
 export default function Home() {
   const [isUserLoaded, setIsUserLoaded] = useState(false);
   const [username, setUsername] = useState('Guest');
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
 
   const signOut = () => {
     auth.signOut().then(() => {
       setUsername('Guest');
+      setIsUserLoggedIn(false);
     });
   };
 
@@ -24,12 +26,15 @@ export default function Home() {
         try {
           const data = await getUser(user.uid);
           setUsername(data ? data.firstName : 'Guest');
+          setIsUserLoggedIn(data ? true : false);
         } catch (error) {
           console.warn('[Home]', error);
           setUsername('Guest');
+          setIsUserLoggedIn(false);
         }
       } else {
         setUsername('Guest');
+        setIsUserLoggedIn(false);
       }
       setIsUserLoaded(true);
     });
@@ -61,7 +66,7 @@ export default function Home() {
           </h1>
         )}
 
-        {isUserLoaded && username != 'Guest' && (
+        {isUserLoaded && isUserLoggedIn && (
           <div className={styles.grid}>
             <Link href="/profile" className={styles.card}>
               <h2>Profil &rarr;</h2>
@@ -92,25 +97,19 @@ export default function Home() {
           </div>
         )}
 
-        {!isUserLoaded && (
-            <div className={styles.grid}>
-              <h2 className={styles.title}>Loading...</h2>
-            </div>
-        )}
-
         {isUserLoaded && (
         <div className={styles.grid}>
-          {username !== 'Guest' && (
+          {isUserLoggedIn && (
             <button onClick={signOut} className={styles.card}>
               <p>Log out</p>
             </button>
           )}
-          {username === 'Guest' && (
+          {!isUserLoggedIn && (
             <button onClick={onSignIn} className={styles.card}>
               <p>Sign In</p>
             </button>
           )}
-          {username === 'Guest' && (
+          {!isUserLoggedIn && (
             <button onClick={onSignUp} className={styles.card}>
               <p>Sign Up</p>
             </button>
