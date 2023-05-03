@@ -2,16 +2,21 @@ import Head from 'next/head';
 import { provider, auth } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import router from 'next/router';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { dispatch } = useContext(AuthContext);
 
   const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
-      .then((result) => {
+      .then(() => {
+        dispatch({
+          type: 'sign-in',
+        });
         router.push('/');
       })
       .catch((error) => {
@@ -22,6 +27,9 @@ export default function SignInPage() {
   const signInWithCredentials = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
+        dispatch({
+          type: 'sign-in',
+        });
         router.push('/');
       })
       .catch((error) => {
