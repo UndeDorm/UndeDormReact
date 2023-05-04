@@ -2,45 +2,23 @@ import Head from 'next/head';
 import { auth } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { onAuthStateChanged } from 'firebase/auth';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import router from 'next/router';
 import Link from 'next/link';
 import { getUser } from '../src/firebase/database';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function Home() {
-  const [isUserLoaded, setIsUserLoaded] = useState(false);
-  const [username, setUsername] = useState('Guest');
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const {
+    dispatch,
+    state: { isUserLoaded, isUserLoggedIn, user },
+  } = useContext(AuthContext);
 
   const signOut = () => {
     auth.signOut().then(() => {
-      setUsername('Guest');
-      setIsUserLoggedIn(false);
+      dispatch({ type: 'logout' });
     });
   };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setIsUserLoaded(false);
-      if (user) {
-        try {
-          const data = await getUser(user.uid);
-          setUsername(data ? data.firstName : 'Guest');
-          setIsUserLoggedIn(data ? true : false);
-        } catch (error) {
-          console.warn('[Home]', error);
-          setUsername('Guest');
-          setIsUserLoggedIn(false);
-        }
-      } else {
-        setUsername('Guest');
-        setIsUserLoggedIn(false);
-      }
-      setIsUserLoaded(true);
-    });
-
-    return unsubscribe;
-  }, []);
 
   const onSignIn = () => {
     router.push('/sign-in');
@@ -62,7 +40,8 @@ export default function Home() {
         {!isUserLoaded && <h1 className={styles.title}>Loading...</h1>}
         {isUserLoaded && (
           <h1 className={styles.title}>
-            Hello, {username}! Welcome to <a href="">UndeDorm</a>
+            Hello, {user?.firstName ?? 'Guest'}! Welcome to{' '}
+            <a href="">UndeDorm</a>
           </h1>
         )}
 
@@ -98,23 +77,23 @@ export default function Home() {
         )}
 
         {isUserLoaded && (
-        <div className={styles.grid}>
-          {isUserLoggedIn && (
-            <button onClick={signOut} className={styles.card}>
-              <p>Log out</p>
-            </button>
-          )}
-          {!isUserLoggedIn && (
-            <button onClick={onSignIn} className={styles.card}>
-              <p>Sign In</p>
-            </button>
-          )}
-          {!isUserLoggedIn && (
-            <button onClick={onSignUp} className={styles.card}>
-              <p>Sign Up</p>
-            </button>
-          )}
-        </div>
+          <div className={styles.grid}>
+            {isUserLoggedIn && (
+              <button onClick={signOut} className={styles.card}>
+                <p>Log out</p>
+              </button>
+            )}
+            {!isUserLoggedIn && (
+              <button onClick={onSignIn} className={styles.card}>
+                <p>Sign In</p>
+              </button>
+            )}
+            {!isUserLoggedIn && (
+              <button onClick={onSignUp} className={styles.card}>
+                <p>Sign Up</p>
+              </button>
+            )}
+          </div>
         )}
       </main>
     </div>

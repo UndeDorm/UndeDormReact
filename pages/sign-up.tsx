@@ -2,12 +2,15 @@ import Head from 'next/head';
 import { provider, auth, firebaseDb } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
-import { useRef } from 'react';
+import { useContext, useRef } from 'react';
 import router from 'next/router';
 import { BasicUser } from '../src/utils/types';
 import { addUser } from '../src/firebase/database';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function SignInPage() {
+  const { dispatch } = useContext(AuthContext);
+
   const email = useRef<string>('');
   const password = useRef<string>('');
   const firstName = useRef<string>('');
@@ -25,6 +28,13 @@ export default function SignInPage() {
           dateOfBirth: dateOfBirth.current.getTime(),
         };
         const onSuccess = () => {
+          dispatch({
+            type: 'sign-in',
+          });
+          dispatch({
+            type: 'set-user',
+            payload: { user: user },
+          });
           router.push('/');
         };
         const onFailure = (error: any) => {
@@ -65,6 +75,13 @@ export default function SignInPage() {
           dateOfBirth: dateOfBirth.current.getTime(),
         };
         const onSuccess = () => {
+          dispatch({
+            type: 'sign-in',
+          });
+          dispatch({
+            type: 'set-user',
+            payload: { user: user },
+          });
           router.push('/');
         };
         const onFailure = (error: any) => {
