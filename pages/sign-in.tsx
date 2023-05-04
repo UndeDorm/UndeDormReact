@@ -2,14 +2,20 @@ import Head from 'next/head';
 import { provider, auth } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import router from 'next/router';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { dispatch } = useContext(AuthContext);
+  const { state, dispatch } = useContext(AuthContext);
+
+  if (state.isUserLoggedIn) {
+    console.log('You are currently logged in!')
+    router.push('/');
+    return;
+  }
 
   const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
@@ -40,10 +46,6 @@ export default function SignInPage() {
           alert('Incorrect password!');
         }
       });
-  };
-
-  const ForgotPassword = () => {
-    router.push('/forgotPassword');
   };
 
   return (
@@ -77,11 +79,6 @@ export default function SignInPage() {
         <button onClick={signInWithGoogle} className={styles.card}>
           <p>Log in with Google</p>
         </button>
-
-        <button onClick={ForgotPassword} className={styles.card}>
-          <p>Forgot Password</p>
-        </button>
-
       </main>
     </div>
   );

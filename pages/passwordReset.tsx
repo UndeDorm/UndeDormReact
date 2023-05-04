@@ -1,7 +1,8 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useContext, useState } from "react";
 import styles from '../styles/Home.module.css';
 import { useRouter } from "next/router";
 import { confirmThePasswordReset } from "../src/firebase/firebase";
+import { AuthContext } from "../src/providers/auth/AuthProvider";
 
 const defaultFormFields = {
     password: '',
@@ -14,6 +15,13 @@ export default function ResetPassword() {
     const {password, confirmPassword} = formFields;
     const router = useRouter();
     const { oobCode } = router.query;
+    const { state } = useContext(AuthContext);
+
+    if (state.isUserLoggedIn) {
+        console.log('You are currently logged in!');
+        router.push('/');
+        return;
+    }
 
     const resetFormFields = () => {
         return (
@@ -25,7 +33,7 @@ export default function ResetPassword() {
         e.preventDefault()
 
         if (password !== confirmPassword) {
-            alert('Password do not match')
+            alert('Password do not match');
             return;
         }
 
@@ -36,24 +44,24 @@ export default function ResetPassword() {
 
         try {
             if (oobCode) {
-                await confirmThePasswordReset(oobCode as string, confirmPassword)
-                setSuccesMessage(true)
-                resetFormFields()
+                await confirmThePasswordReset(oobCode as string, confirmPassword);
+                setSuccesMessage(true);
+                resetFormFields();
             } else {
-                alert('Something went wrong')
-                console.log('missing oobCode')
+                alert('Something went wrong');
+                console.log('missing oobCode');
             }
         } catch (error:any) {
             if (error.code === 'auth/invalid-action-code') {
-                alert('The action code is invalid. This can happen if the code is malformed, expired, or has already been used.')
+                alert('The action code is invalid. This can happen if the code is malformed, expired, or has already been used.');
             }
-            console.log(error.message)
+            console.log(error.message);
         }
     }
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormFields({...formFields, [name]: value})
+        setFormFields({...formFields, [name]: value});
     }
 
     return (

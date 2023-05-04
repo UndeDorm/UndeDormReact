@@ -2,20 +2,25 @@ import Head from 'next/head';
 import { provider, auth, firebaseDb } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
-import { useContext, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import router from 'next/router';
 import { BasicUser } from '../src/utils/types';
 import { addUser } from '../src/firebase/database';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function SignInPage() {
-  const { dispatch } = useContext(AuthContext);
-
+  const { state, dispatch } = useContext(AuthContext);
   const email = useRef<string>('');
   const password = useRef<string>('');
   const firstName = useRef<string>('');
   const lastName = useRef<string>('');
   const dateOfBirth = useRef<Date>(new Date());
+
+  if (state.isUserLoggedIn) {
+    console.log('You are currently logged in!')
+    router.push('/');
+    return;
+  }
 
   const signUpWithGoogle = () => {
     signInWithPopup(auth, provider)
@@ -92,6 +97,9 @@ export default function SignInPage() {
       })
       .catch((error) => {
         console.warn('[SignUp]', error);
+        if (error.code === 'auth/email-already-in-use') {
+          alert('Email already in use.');
+        }
       });
   };
 

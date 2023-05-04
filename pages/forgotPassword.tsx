@@ -1,10 +1,19 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useContext, useState } from "react";
 import styles from '../styles/Home.module.css';
 import { passwordReset } from "../src/firebase/firebase";
+import { AuthContext } from "../src/providers/auth/AuthProvider";
+import router from "next/router";
 
 export default function ForgotPassword() {
-    const [email, setEmail] = useState('')
-    const [emailMessage, setEmailMessage] = useState(false)
+    const [email, setEmail] = useState('');
+    const [emailMessage, setEmailMessage] = useState(false);
+    const { state } = useContext(AuthContext);
+
+    if (state.isUserLoggedIn) {
+        console.log('You are currently logged in!')
+        router.push('/');
+        return;
+    }
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -13,8 +22,8 @@ export default function ForgotPassword() {
             setEmailMessage(true)
         } catch (error:any) {
             if (error.code === 'auth/user-not-found') {
-                alert('User not found, try again!')
-                setEmail('')
+                alert('User not found, try again!');
+                setEmail('');
             }
         }
     };
