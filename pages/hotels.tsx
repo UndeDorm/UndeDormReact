@@ -1,9 +1,9 @@
 import Head from 'next/head';
-import styles from '../styles/Home.module.css';
+import styles from '../styles/Hotels.module.css';
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import { useRouter } from 'next/router';
-import { firebaseDb } from '../src/firebase/firebase';
+import { firebaseDb, storage, storageRef } from '../src/firebase/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
 export default function HotelList() {
@@ -11,7 +11,10 @@ export default function HotelList() {
   const router = useRouter();
   const hotelsRef = collection(firebaseDb, 'hotels');
 
+  const [hotelImages, setHotelImages] = useState<string[]>([]);
   const [hotelNames, setHotelNames] = useState<string[]>([]);
+  const [hotelLocations, setHotelLocations] = useState<string[]>([]);
+  const [hotelDescriptions, setHotelDescriptions] = useState<string[]>([]);
 
   useEffect(() => {
     if (!state.isUserLoggedIn && !state.isUserLoaded) {
@@ -21,14 +24,24 @@ export default function HotelList() {
       console.log(hotelsRef);
       const getHotels = async () => {
         const hotelsSnapshot = await getDocs(hotelsRef);
-        const newHotelNames = hotelsSnapshot.docs
-          .map((doc) => doc.data().Name)
-          .filter((Name) => Name !== undefined && Name !== null);
+        const hotelsData = hotelsSnapshot.docs
+          .map((doc) => doc.data())
+          .filter((data) => data.Name !== undefined && data.Name !== null);
 
-        setHotelNames(newHotelNames);
+        const hotelImages = hotelsData.map((data) => data.Images);
+        const hotelNames = hotelsData.map((data) => data.Name);
+        const hotelLocations = hotelsData.map((data) => data.Location);
+        const hotelDescriptions = hotelsData.map((data) => data.Description);
+
+        // Set the state with the hotel names and locations
+        setHotelImages(hotelImages);
+        setHotelNames(hotelNames);
+        setHotelLocations(hotelLocations);
+        setHotelDescriptions(hotelDescriptions);
       };
       getHotels();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -41,11 +54,26 @@ export default function HotelList() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>Cautare de hoteluri</h1>
-        <ul>
-          {hotelNames.map((name) => (
-            <li key={name}>{name}</li>
-          ))}
-        </ul>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Location</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hotelNames.map((name, index) => (
+              <tr key={name}>
+                <td>{hotelImages[index].at(0)}</td>
+                <td className={styles.td}>{name}</td>
+                <td className={styles.td}>{hotelLocations[index]}</td>
+                <td className={styles.td}>{hotelDescriptions[index]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </main>
     </div>
   );
