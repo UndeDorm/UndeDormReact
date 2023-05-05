@@ -70,6 +70,11 @@ export default function SignInPage() {
       return;
     }
 
+    if (new Date().getTime() - dateOfBirth.current.getTime() < 504910816000) {
+      alert('You must be at least 16 years old to sign up.');
+      return;
+    }
+
     createUserWithEmailAndPassword(auth, email.current, password.current)
       .then((userCredential) => {
         const user: BasicUser = {

@@ -1,7 +1,31 @@
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
+import { useContext, useEffect } from 'react';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
+import { useRouter } from 'next/router';
+import { firebaseDb } from '../src/firebase/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 export default function HotelList() {
+  const { state } = useContext(AuthContext);
+  const router = useRouter();
+  const hotelsRef = collection(firebaseDb, 'hotels');
+
+  useEffect(() => {
+    if (!state.isUserLoggedIn) {
+      console.log('You are not logged in!')
+      router.push('/');
+    } else {
+      const getHotels = async () => {
+        const hotelsSnapshot = await getDocs(hotelsRef);
+        hotelsSnapshot.forEach((hotelDoc) => {
+          console.log(hotelDoc.data());
+        });
+      }
+      getHotels();
+    }
+  }, [state.isUserLoggedIn, router, hotelsRef]);
+
   return (
     <div className={styles.container}>
       <Head>
