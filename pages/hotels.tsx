@@ -18,6 +18,7 @@ export default function HotelList() {
       console.log('You are not logged in!');
       router.push('/');
     } else {
+      console.log(hotelsRef);
       const getHotels = async () => {
         const hotelsSnapshot = await getDocs(hotelsRef);
         const newHotelNames = hotelsSnapshot.docs
@@ -28,7 +29,7 @@ export default function HotelList() {
       };
       getHotels();
     }
-  }, [state.isUserLoggedIn, router, hotelsRef, state.isUserLoaded]);
+  }, []);
 
   return (
     <div className={styles.container}>
