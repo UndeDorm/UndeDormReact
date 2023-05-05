@@ -28,7 +28,7 @@ export default function HotelList() {
       };
       getHotels();
     }
-  }, [state.isUserLoggedIn, router, hotelsRef]);
+  }, [state.isUserLoggedIn, router, hotelsRef, state.isUserLoaded]);
 
   return (
     <div className={styles.container}>
