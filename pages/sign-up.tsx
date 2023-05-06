@@ -17,7 +17,7 @@ export default function SignInPage() {
   const dateOfBirth = useRef<Date>(new Date());
 
   if (state.isUserLoggedIn) {
-    console.log('You are currently logged in!')
+    console.log('You are currently logged in!');
     router.push('/');
     return;
   }
@@ -35,6 +35,9 @@ export default function SignInPage() {
         const onSuccess = () => {
           dispatch({
             type: 'sign-in',
+            payload: {
+              uuid: auth.currentUser?.uid,
+            },
           });
           dispatch({
             type: 'set-user',
@@ -82,6 +85,9 @@ export default function SignInPage() {
         const onSuccess = () => {
           dispatch({
             type: 'sign-in',
+            payload: {
+              uuid: auth.currentUser?.uid,
+            },
           });
           dispatch({
             type: 'set-user',

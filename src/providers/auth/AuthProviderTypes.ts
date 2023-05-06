@@ -1,10 +1,13 @@
 import { Reducer } from 'react';
+import { BasicUser } from '../../utils/types';
 
 export type AuthProviderStateType = {
-  isUserLoaded: boolean;
   isUserLoggedIn: boolean;
-  user: any;
+  user: BasicUser | undefined;
+  // requestStatus: RequestStatusType;
 };
+
+export type RequestStatusType = 'initial-loading' | 'loading' | 'success';
 
 export type AuthContextType = {
   state: AuthProviderStateType;
@@ -14,6 +17,9 @@ export type AuthContextType = {
 export type AuthProviderAction =
   | {
       type: 'sign-in';
+      payload: {
+        uuid?: string;
+      };
     }
   | {
       type: 'logout';
