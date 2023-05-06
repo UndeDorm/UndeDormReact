@@ -17,19 +17,19 @@ export default function AddHotelPage() {
   const myCollection = collection(firebaseDb, 'hotels');
   const myDocRef = doc(myCollection);
 
+useEffect(() => {
   if (!state.isUserLoggedIn) {
     console.log('You are not logged in!');
-    // router.push('/');
+    router.push('/');
     return;
-  }
-
-  if (state.isUserLoggedIn) {
+  } else {
     if (!state.user?.isOwner) {
       console.log('You are not an owner!');
-      // router.push('/');
+      router.push('/');
       return;
     }
   }
+}, [state]);
 
   const addHotelToDatabase = () => {
     const hotel: Hotel = {
