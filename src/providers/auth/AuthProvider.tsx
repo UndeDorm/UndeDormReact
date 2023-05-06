@@ -73,8 +73,6 @@ const AuthProvider: React.FC<PropsWithChildren<AuthProviderProps>> = ({
     initialReducerState
   );
 
-  console.log('ap', isLogged);
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {

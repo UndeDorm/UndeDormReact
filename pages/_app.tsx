@@ -20,7 +20,6 @@ App.getInitialProps = async ({ Component, ctx }) => {
 
   try {
     if (ctx.req) {
-      // ctx.req exists server-side only
       if (typeof window === 'undefined' && ctx.req.headers.cookie) {
         cookies = cookie.parse(ctx.req.headers.cookie);
       }
@@ -28,9 +27,7 @@ App.getInitialProps = async ({ Component, ctx }) => {
 
     uuid = cookies.uuid ?? undefined;
 
-    console.log('uuid-cookies', uuid);
     profile = uuid ? await getUser(uuid) : undefined;
-    console.log('profile', profile);
   } catch (error) {
     console.log(error);
 
