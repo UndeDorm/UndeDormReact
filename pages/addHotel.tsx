@@ -13,10 +13,10 @@ export default function AddHotelPage() {
   const location = useRef<string>('');
   const description = useRef<string>('');
   const images = useRef<string[]>(['']);
-  const ownerId = useRef<string>('');
   const id = useRef<string>('');
 
   if (!state.isUserLoggedIn && !state.isUserLoaded) {
+    
     console.log('You are not logged in!');
     router.push('/');
     return;
@@ -29,7 +29,7 @@ export default function AddHotelPage() {
       location: location.current,
       description: description.current,
       images: images.current,
-      ownerId: ownerId.current,
+      ownerId: state.user.id,
     };
 
     const onSuccess = () => {
@@ -68,11 +68,6 @@ export default function AddHotelPage() {
         placeholder="Image URL"
         className={styles.input}
         onChange={(e) => (images.current = [...images.current, e.target.value])}
-      />
-      <input
-        placeholder="Owner ID"
-        className={styles.input}
-        onChange={(e) => (ownerId.current = e.target.value)}
       />
       <button onClick={addHotelToDatabase} className={styles.button}>
         Add Hotel
