@@ -18,10 +18,10 @@ export default function HotelList() {
   const [hotelIds, setHotelIds] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!state.isUserLoggedIn && !state.isUserLoaded) {
+    if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
       router.push('/');
-    } else if (state.isUserLoggedIn && state.isUserLoaded) {
+    } else if (state.isUserLoggedIn) {
       console.log(hotelsRef);
       const getHotels = async () => {
         const hotelsSnapshot = await getDocs(hotelsRef);
@@ -31,7 +31,7 @@ export default function HotelList() {
             (data) =>
               data.name !== undefined &&
               data.name !== null &&
-              data.ownerId === state.user.id
+              data.ownerId === state.user?.id
           );
 
         const hotelImages = hotelsData.map((data) => data.images);
@@ -50,8 +50,8 @@ export default function HotelList() {
       getHotels();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.isUserLoggedIn, state.isUserLoaded]);
-  const handleDelete = async (hotelId) => {
+  }, [state.isUserLoggedIn]);
+  const handleDelete = async (hotelId: string) => {
     try {
       await deleteDoc(doc(firebaseDb, 'hotels', hotelId));
       console.log('Hotel deleted successfully!');

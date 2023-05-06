@@ -17,14 +17,14 @@ export default function AddHotelPage() {
   const myCollection = collection(firebaseDb, 'hotels');
   const myDocRef = doc(myCollection);
 
-  if (!state.isUserLoggedIn && !state.isUserLoaded) {
+  if (!state.isUserLoggedIn) {
     console.log('You are not logged in!');
     router.push('/');
     return;
   }
 
-  if (state.isUserLoggedIn && state.isUserLoaded) {
-    if (!state.user.isOwner) {
+  if (state.isUserLoggedIn) {
+    if (!state.user?.isOwner) {
       console.log('You are not an owner!');
       router.push('/');
       return;
@@ -38,7 +38,7 @@ export default function AddHotelPage() {
       location: location.current,
       description: description.current,
       images: images.current,
-      ownerId: state.user.id,
+      ownerId: state.user?.id ?? '',
     };
 
     const onSuccess = () => {

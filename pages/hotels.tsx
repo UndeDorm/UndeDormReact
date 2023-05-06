@@ -17,7 +17,7 @@ export default function HotelList() {
   const [hotelDescriptions, setHotelDescriptions] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!state.isUserLoggedIn && !state.isUserLoaded) {
+    if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
       router.push('/');
     } else {
