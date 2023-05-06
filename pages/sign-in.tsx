@@ -12,7 +12,7 @@ export default function SignInPage() {
   const { state, dispatch } = useContext(AuthContext);
 
   if (state.isUserLoggedIn) {
-    console.log('You are currently logged in!')
+    console.log('You are currently logged in!');
     router.push('/');
     return;
   }
@@ -22,6 +22,9 @@ export default function SignInPage() {
       .then(() => {
         dispatch({
           type: 'sign-in',
+          payload: {
+            uuid: auth.currentUser?.uid,
+          },
         });
         router.push('/');
       })
@@ -35,6 +38,9 @@ export default function SignInPage() {
       .then(() => {
         dispatch({
           type: 'sign-in',
+          payload: {
+            uuid: auth.currentUser?.uid,
+          },
         });
         router.push('/');
       })
