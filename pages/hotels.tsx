@@ -26,12 +26,12 @@ export default function HotelList() {
         const hotelsSnapshot = await getDocs(hotelsRef);
         const hotelsData = hotelsSnapshot.docs
           .map((doc) => doc.data())
-          .filter((data) => data.Name !== undefined && data.Name !== null);
+          .filter((data) => data.name !== undefined && data.name !== null);
 
-        const hotelImages = hotelsData.map((data) => data.Images);
-        const hotelNames = hotelsData.map((data) => data.Name);
-        const hotelLocations = hotelsData.map((data) => data.Location);
-        const hotelDescriptions = hotelsData.map((data) => data.Description);
+        const hotelImages = hotelsData.map((data) => data.images);
+        const hotelNames = hotelsData.map((data) => data.name);
+        const hotelLocations = hotelsData.map((data) => data.location);
+        const hotelDescriptions = hotelsData.map((data) => data.description);
 
         // Set the state with the hotel names and locations
         setHotelImages(hotelImages);
