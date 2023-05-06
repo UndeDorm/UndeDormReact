@@ -19,14 +19,14 @@ export default function AddHotelPage() {
 
   if (!state.isUserLoggedIn) {
     console.log('You are not logged in!');
-    router.push('/');
+    // router.push('/');
     return;
   }
 
   if (state.isUserLoggedIn) {
     if (!state.user?.isOwner) {
       console.log('You are not an owner!');
-      router.push('/');
+      // router.push('/');
       return;
     }
   }
