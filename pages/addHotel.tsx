@@ -6,6 +6,7 @@ import router from 'next/router';
 import { BasicUser, Hotel } from '../src/utils/types';
 import { addHotel } from '../src/firebase/database';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
+import { collection, doc } from 'firebase/firestore';
 
 export default function AddHotelPage() {
   const { state } = useContext(AuthContext);
@@ -13,18 +14,26 @@ export default function AddHotelPage() {
   const location = useRef<string>('');
   const description = useRef<string>('');
   const images = useRef<string[]>(['']);
-  const id = useRef<string>('');
+  const myCollection = collection(firebaseDb, "hotels");
+  const myDocRef = doc(myCollection);
 
   if (!state.isUserLoggedIn && !state.isUserLoaded) {
-    
     console.log('You are not logged in!');
     router.push('/');
     return;
   }
 
+  if (state.isUserLoggedIn && state.isUserLoaded) {
+    if (!state.user.isOwner) {
+      console.log('You are not an owner!');
+      router.push('/');
+      return;
+    }
+  }
+
   const addHotelToDatabase = () => {
     const hotel: Hotel = {
-      id: id.current,
+      id: myDocRef.id,
       name: name.current,
       location: location.current,
       description: description.current,
@@ -44,11 +53,6 @@ export default function AddHotelPage() {
   return (
     <main className={styles.main}>
       <h1 className={styles.title}>Add a hotel</h1>
-      <input
-        placeholder="id"
-        onChange={(e) => (id.current = e.target.value)}
-        className={styles.input}
-      />
       <input
         placeholder="Name"
         onChange={(e) => (name.current = e.target.value)}
