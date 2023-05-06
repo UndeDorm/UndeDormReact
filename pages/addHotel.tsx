@@ -14,7 +14,7 @@ export default function AddHotelPage() {
   const location = useRef<string>('');
   const description = useRef<string>('');
   const images = useRef<string[]>(['']);
-  const myCollection = collection(firebaseDb, "hotels");
+  const myCollection = collection(firebaseDb, 'hotels');
   const myDocRef = doc(myCollection);
 
   if (!state.isUserLoggedIn && !state.isUserLoaded) {

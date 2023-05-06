@@ -48,6 +48,7 @@ export const addHotel = ({
     images: hotel.images,
     description: hotel.description,
     ownerId: hotel.ownerId,
+    id: hotel.id,
   })
     .then(onSuccess)
     .catch(onFailure);
