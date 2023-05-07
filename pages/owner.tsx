@@ -1,13 +1,12 @@
 import styles from '../styles/Home.module.css';
-import { auth, firebaseDb } from '../src/firebase/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { auth, firebaseDb, app } from '../src/firebase/firebase';
 import { useEffect, useState } from 'react';
 import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { getAuth } from 'firebase/auth';
-import { app } from '../src/firebase/firebase';
 import { getUser } from '../src/firebase/database';
-import { updateDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { updateDoc, getDoc } from 'firebase/firestore';
 
 
 export default function BecomeOwner() {
@@ -34,28 +33,42 @@ export default function BecomeOwner() {
         return unsubscribe;
     }, []);
 
-    const userID = getAuth(app).currentUser?.uid;
+    const uid = getAuth(app).currentUser?.uid;
 
     return (
         <div className={styles.container}>
             <main className={styles.main}>
-                {userID && (
+                {!uid && (<div className={styles.grid}>
+                    <h1 className={styles.title}>You are not logged in to become an owner</h1>
+                    <Link
+                        rel="icon"
+                        href="\"
+                        className={styles.card}
+                    >
+                        <h2>Back &rarr;</h2>
+                        <div>
+                            Click here
+                        </div>
+                    </Link>
+                </div>)}
+                {uid && (
                     <div className={styles.grid}>
                         <Link
                             rel="icon"
                             href="/"
                             className={styles.card}
-                            onClick={() => {
-                                if (userID)
-                                    updateDoc(doc(firebaseDb, 'users', userID), { isOwner: true }).then(response => {
+                            onClick={async () => {
+                                let user = await getDoc(doc(firebaseDb, 'users', uid));
+                                if (user.data()!.isOwner == false)
+                                    updateDoc(doc(firebaseDb, 'users', uid), { isOwner: true }).then(response => {
                                         alert("User updated")
                                     }).catch(error => {
                                         console.log(error.message)
                                     })
                             }} > <h2>Proprietar &rarr;</h2>
-                            <p>
-                                Click here to become an owner.
-                            </p>
+                            <div>
+                                Click here to become an owner
+                            </div>
                         </Link>
                     </div>
                 )}
