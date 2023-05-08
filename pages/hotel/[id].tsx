@@ -51,9 +51,32 @@ export default function HotelPage({ id }: { id: string }) {
           </Head>
   
           <main className={styles.main}>
-            <h1 className={styles.title}>Your Hotel {hotelName}</h1>
-            <p className={styles.description}>Location: {hotelLocation}</p>
-            <p className={styles.description}>Description: {hotelDescription}</p>
+            <h1 className={styles.title}>Your Hotel
+            <br/>
+            <input
+              type="text"
+              defaultValue={hotelName}
+              onChange={(e) => setHotelName(e.target.value)}
+            />
+            </h1>
+            <label className={styles.description}>
+              Location:
+              <br/>
+              <input
+                type="text"
+                defaultValue={hotelLocation}
+                onChange={(e) => setHotelLocation(e.target.value)}
+              />
+            </label>
+            <label className={styles.description}>
+              Description:
+              <br/>
+              <input
+                type="text"
+                defaultValue={hotelDescription}
+                onChange={(e) => setHotelDescription(e.target.value)}
+              />
+            </label>
           </main>
         </>
       ) : (
