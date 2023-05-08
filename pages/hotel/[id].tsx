@@ -1,4 +1,4 @@
-import { collection, doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
@@ -12,7 +12,11 @@ export default function HotelPage({ id }: { id: string }) {
   const [hotelLocation, setHotelLocation] = useState<string>();
   const [hotelDescription, setHotelDescription] = useState<string>();
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
-
+  const [roomIds, setRoomIds] = useState<string[]>([]);
+  const [roomnoBeds, setRoomnoBeds] = useState<number[]>([]);
+  const [roomprice, setRoomprice] = useState<number[]>([]);
+  const [roomBenefits, setRoomBenefits] = useState<string[]>([]);
+  const roomsRef = collection(firebaseDb, 'rooms');
   const router = useRouter();
 
   useEffect(() => {
@@ -37,8 +41,36 @@ export default function HotelPage({ id }: { id: string }) {
       }
     }
 
+    const fetchRooms = async () => {
+      const roomsSnapshot = await getDocs(roomsRef);
+      const roomsData = roomsSnapshot.docs
+        .map((doc) => doc.data())
+        .filter((data) => data.id !== undefined && data.id !== null && data.hotelId === id);
+
+      const roomIds = roomsData.map((data) => data.id);
+      const roomnoBeds = roomsData.map((data) => data.nrBeds);
+      const roomprice = roomsData.map((data) => data.pricePerNight);
+      const roomBenefits = roomsData.map((data) => data.benefits);
+
+      setRoomIds(roomIds);
+      setRoomnoBeds(roomnoBeds);
+      setRoomprice(roomprice);
+      setRoomBenefits(roomBenefits);
+    };
+
     fetchHotel();
-  }, [id, router, state]);
+    fetchRooms();
+  }, [id, roomsRef, router, state]);
+
+  async function handleUpdateHotel() {
+    const hotelRef = doc(firebaseDb, 'hotels', id);
+    await updateDoc(hotelRef, {
+      name: hotelName,
+      location: hotelLocation,
+      description: hotelDescription,
+    });
+    router.push('/ownerHotels');
+  }
 
   return (
     <div className={styles.container}>
@@ -77,7 +109,29 @@ export default function HotelPage({ id }: { id: string }) {
                 onChange={(e) => setHotelDescription(e.target.value)}
               />
             </label>
+            <button onClick={handleUpdateHotel}>Update Hotel</button>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Number Of Beds</th>
+                  <th>Price</th>
+                  <th>Benefits</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roomIds && roomIds.map((roomId, index) => (
+                  <tr key={roomId}>
+                    <td className={styles.td}>{roomId}</td>
+                    <td className={styles.td}>{roomnoBeds && roomnoBeds[index]}</td>
+                    <td className={styles.td}>{roomprice && roomprice[index]}</td>
+                    <td className={styles.td}>{roomBenefits && roomBenefits[index]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </main>
+
         </>
       ) : (
         <>
@@ -91,6 +145,26 @@ export default function HotelPage({ id }: { id: string }) {
             <h1 className={styles.title}>Hotel {hotelName}</h1>
             <p className={styles.description}>Location: {hotelLocation}</p>
             <p className={styles.description}>Description: {hotelDescription}</p>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Number Of Beds</th>
+                  <th>Price</th>
+                  <th>Benefits</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roomIds && roomIds.map((roomId, index) => (
+                  <tr key={roomId}>
+                    <td className={styles.td}>{roomId}</td>
+                    <td className={styles.td}>{roomnoBeds && roomnoBeds[index]}</td>
+                    <td className={styles.td}>{roomprice && roomprice[index]}</td>
+                    <td className={styles.td}>{roomBenefits && roomBenefits[index]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </main>
         </>
       )}
