@@ -21,6 +21,10 @@ export default function HotelList() {
     if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
       router.push('/');
+    } else if (!state.user?.isOwner) {
+      console.log('You are not an owner!');
+      router.push('/');
+      return;
     } else if (state.isUserLoggedIn) {
       console.log(hotelsRef);
       const getHotels = async () => {
@@ -48,7 +52,7 @@ export default function HotelList() {
         setHotelIds(hotelIds);
       };
       getHotels();
-    }
+    } 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isUserLoggedIn]);
   const handleDelete = async (hotelId: string) => {
