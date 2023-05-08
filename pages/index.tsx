@@ -84,28 +84,6 @@ export default function Home() {
               </div>
             )}
 
-<<<<<<< HEAD
-        {!isUserLoaded && <div className={styles.grid}></div>}
-
-        {isUserLoaded && (
-          <div className={styles.grid}>
-            {username !== 'Guest' && (
-              <button onClick={signOut} className={styles.card}>
-                <p>Log out</p>
-              </button>
-            )}
-            {username === 'Guest' && (
-              <button onClick={onSignIn} className={styles.card}>
-                <p>Sign In</p>
-              </button>
-            )}
-            {username === 'Guest' && (
-              <button onClick={onSignUp} className={styles.card}>
-                <p>Sign Up</p>
-              </button>
-            )}
-          </div>
-=======
             <div className={styles.grid}>
               {isUserLoggedIn && (
                 <button onClick={signOut} className={styles.card}>
@@ -124,7 +102,6 @@ export default function Home() {
               )}
             </div>
           </>
->>>>>>> dev
         )}
       </main>
     </div>
