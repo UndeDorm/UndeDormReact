@@ -8,7 +8,7 @@ import styles from '../../styles/Home.module.css';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
-  const [hotelName, setHotelName] = useState<string>();
+  const [hotelName, setHotelName] = useState<string>('');
   const [hotelLocation, setHotelLocation] = useState<string>();
   const [hotelDescription, setHotelDescription] = useState<string>();
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
@@ -16,7 +16,6 @@ export default function HotelPage({ id }: { id: string }) {
   const [roomnoBeds, setRoomnoBeds] = useState<number[]>([]);
   const [roomprice, setRoomprice] = useState<number[]>([]);
   const [roomBenefits, setRoomBenefits] = useState<string[]>([]);
-  const roomsRef = collection(firebaseDb, 'rooms');
   const router = useRouter();
 
   useEffect(() => {
@@ -42,6 +41,7 @@ export default function HotelPage({ id }: { id: string }) {
     }
 
     const fetchRooms = async () => {
+      const roomsRef = collection(firebaseDb, 'rooms');
       const roomsSnapshot = await getDocs(roomsRef);
       const roomsData = roomsSnapshot.docs
         .map((doc) => doc.data())
@@ -60,7 +60,7 @@ export default function HotelPage({ id }: { id: string }) {
 
     fetchHotel();
     fetchRooms();
-  }, [id, roomsRef, router, state]);
+  }, [id, router, state]);
 
   async function handleUpdateHotel() {
     const hotelRef = doc(firebaseDb, 'hotels', id);
@@ -117,6 +117,7 @@ export default function HotelPage({ id }: { id: string }) {
                   <th>Number Of Beds</th>
                   <th>Price</th>
                   <th>Benefits</th>
+                  <th>Modify</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,6 +127,11 @@ export default function HotelPage({ id }: { id: string }) {
                     <td className={styles.td}>{roomnoBeds && roomnoBeds[index]}</td>
                     <td className={styles.td}>{roomprice && roomprice[index]}</td>
                     <td className={styles.td}>{roomBenefits && roomBenefits[index]}</td>
+                    <td className={styles.td}>
+                      <button>
+                        Modify
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -152,6 +158,7 @@ export default function HotelPage({ id }: { id: string }) {
                   <th>Number Of Beds</th>
                   <th>Price</th>
                   <th>Benefits</th>
+                  <th>View</th>
                 </tr>
               </thead>
               <tbody>
@@ -161,6 +168,11 @@ export default function HotelPage({ id }: { id: string }) {
                     <td className={styles.td}>{roomnoBeds && roomnoBeds[index]}</td>
                     <td className={styles.td}>{roomprice && roomprice[index]}</td>
                     <td className={styles.td}>{roomBenefits && roomBenefits[index]}</td>
+                    <td className={styles.td}>
+                      <button>
+                        View
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
