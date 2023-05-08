@@ -55,6 +55,7 @@ export default function HotelList() {
     } 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isUserLoggedIn]);
+
   const handleDelete = async (hotelId: string) => {
     try {
       await deleteDoc(doc(firebaseDb, 'hotels', hotelId));
@@ -64,6 +65,15 @@ export default function HotelList() {
       console.error('Error deleting hotel:', error);
     }
   };
+
+  const handleModify = async (hotelId: string) => {
+    try {
+      router.push('/hotel/' + hotelId);
+    } catch (error) {
+      console.error('Error modifying hotel:', error);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -81,7 +91,8 @@ export default function HotelList() {
               <th>Name</th>
               <th>Location</th>
               <th>Description</th>
-              <th>Delete?</th>
+              <th>Delete</th>
+              <th>Modify</th>
             </tr>
           </thead>
           <tbody>
@@ -94,6 +105,11 @@ export default function HotelList() {
                 <td className={styles.td}>
                   <button onClick={() => handleDelete(hotelIds[index])}>
                     Delete
+                  </button>
+                </td>
+                <td className={styles.td}>
+                  <button onClick={() => handleModify(hotelIds[index])}>
+                    Modify
                   </button>
                 </td>
               </tr>

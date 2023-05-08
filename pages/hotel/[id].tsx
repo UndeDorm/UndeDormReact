@@ -1,7 +1,42 @@
+import { collection, doc, getDoc } from 'firebase/firestore';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { useContext, useEffect, useState } from 'react';
+import { firebaseDb } from '../../src/firebase/firebase';
+import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
 
 export default function HotelPage({ id }: { id: string }) {
+  const { state } = useContext(AuthContext);
+  const [hotelName, setHotelName] = useState<string>();
+  const [hotelLocation, setHotelLocation] = useState<string>();
+  const [hotelDescription, setHotelDescription] = useState<string>();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!state.isUserLoggedIn) {
+      console.log('You are not logged in!');
+      router.push('/');
+      return;
+    }
+
+    async function fetchHotel() {
+      const hotelRef = doc(firebaseDb, 'hotels', id);
+      const hotelSnapshot = await getDoc(hotelRef);
+
+      if (hotelSnapshot.exists()) {
+        const hotelData = hotelSnapshot.data();
+        setHotelName(hotelData?.name);
+        setHotelLocation(hotelData?.location);
+        setHotelDescription(hotelData?.description);
+      } else {
+        console.log('Hotel not found!');
+      }
+    }
+
+    fetchHotel();
+  }, [id, router, state]);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,7 +46,9 @@ export default function HotelPage({ id }: { id: string }) {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Hotel {id}</h1>
+        <h1 className={styles.title}>Hotel {hotelName}</h1>
+        <p className={styles.description}>Location: {hotelLocation}</p>
+        <p className={styles.description}>Description: {hotelDescription}</p>
       </main>
     </div>
   );
@@ -21,7 +58,7 @@ export async function getServerSideProps(context: any) {
   const { id } = context.query;
   return {
     props: {
-      id: id,
+      id,
     },
   };
 }

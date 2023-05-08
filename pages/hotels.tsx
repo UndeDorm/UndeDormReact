@@ -15,6 +15,7 @@ export default function HotelList() {
   const [hotelNames, setHotelNames] = useState<string[]>([]);
   const [hotelLocations, setHotelLocations] = useState<string[]>([]);
   const [hotelDescriptions, setHotelDescriptions] = useState<string[]>([]);
+  const [hotelIds, setHotelIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -32,17 +33,27 @@ export default function HotelList() {
         const hotelNames = hotelsData.map((data) => data.name);
         const hotelLocations = hotelsData.map((data) => data.location);
         const hotelDescriptions = hotelsData.map((data) => data.description);
+        const hotelIds = hotelsData.map((data) => data.id);
 
         // Set the state with the hotel names and locations
         setHotelImages(hotelImages);
         setHotelNames(hotelNames);
         setHotelLocations(hotelLocations);
         setHotelDescriptions(hotelDescriptions);
+        setHotelIds(hotelIds);
       };
       getHotels();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleView = async (hotelId: string) => {
+    try {
+      router.push('/hotel/' + hotelId);
+    } catch (error) {
+      console.error('Error accesing hotel:', error);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -61,6 +72,7 @@ export default function HotelList() {
               <th>Name</th>
               <th>Location</th>
               <th>Description</th>
+              <th>View</th>
             </tr>
           </thead>
           <tbody>
@@ -70,6 +82,11 @@ export default function HotelList() {
                 <td className={styles.td}>{name}</td>
                 <td className={styles.td}>{hotelLocations[index]}</td>
                 <td className={styles.td}>{hotelDescriptions[index]}</td>
+                <td className={styles.td}>
+                  <button onClick={() => handleView(hotelIds[index])}>
+                    View
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
