@@ -2,19 +2,27 @@ import Head from 'next/head';
 import { provider, auth, firebaseDb } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, createUserWithEmailAndPassword } from 'firebase/auth';
-import { useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import router from 'next/router';
 import { BasicUser } from '../src/utils/types';
 import { addUser } from '../src/firebase/database';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function SignInPage() {
+  const { state, dispatch } = useContext(AuthContext);
   const email = useRef<string>('');
   const password = useRef<string>('');
   const firstName = useRef<string>('');
   const lastName = useRef<string>('');
   const dateOfBirth = useRef<Date>(new Date());
 
-  const signInWithGoogle = () => {
+  if (state.isUserLoggedIn) {
+    console.log('You are currently logged in!');
+    router.push('/');
+    return;
+  }
+
+  const signUpWithGoogle = () => {
     signInWithPopup(auth, provider)
       .then((result) => {
         const user: BasicUser = {
@@ -25,6 +33,16 @@ export default function SignInPage() {
           dateOfBirth: dateOfBirth.current.getTime(),
         };
         const onSuccess = () => {
+          dispatch({
+            type: 'sign-in',
+            payload: {
+              uuid: auth.currentUser?.uid,
+            },
+          });
+          dispatch({
+            type: 'set-user',
+            payload: { user: user },
+          });
           router.push('/');
         };
         const onFailure = (error: any) => {
@@ -65,6 +83,16 @@ export default function SignInPage() {
           dateOfBirth: dateOfBirth.current.getTime(),
         };
         const onSuccess = () => {
+          dispatch({
+            type: 'sign-in',
+            payload: {
+              uuid: auth.currentUser?.uid,
+            },
+          });
+          dispatch({
+            type: 'set-user',
+            payload: { user: user },
+          });
           router.push('/');
         };
         const onFailure = (error: any) => {
@@ -75,6 +103,9 @@ export default function SignInPage() {
       })
       .catch((error) => {
         console.warn('[SignUp]', error);
+        if (error.code === 'auth/email-already-in-use') {
+          alert('Email already in use.');
+        }
       });
   };
 
@@ -120,7 +151,7 @@ export default function SignInPage() {
           <p>Sign Up</p>
         </button>
 
-        <button onClick={signInWithGoogle} className={styles.card}>
+        <button onClick={signUpWithGoogle} className={styles.card}>
           <p>Sign Up with Google</p>
         </button>
       </main>

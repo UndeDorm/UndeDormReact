@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { 
+  getAuth, 
+  sendPasswordResetEmail, 
+  confirmPasswordReset 
+} from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from "firebase/firestore";
 
@@ -14,6 +18,18 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+export const passwordReset = async (email: string) => {
+  return await sendPasswordResetEmail(auth, email)
+}
+
+export const confirmThePasswordReset = async (
+  oobCode: string, newPassword: string
+) => {
+  if(!oobCode && !newPassword) return;
+
+  return await confirmPasswordReset(auth, oobCode, newPassword)
+}
 
 export const provider = new GoogleAuthProvider();
 

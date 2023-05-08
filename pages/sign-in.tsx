@@ -2,16 +2,30 @@ import Head from 'next/head';
 import { provider, auth } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import router from 'next/router';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { state, dispatch } = useContext(AuthContext);
+
+  if (state.isUserLoggedIn) {
+    console.log('You are currently logged in!');
+    router.push('/');
+    return;
+  }
 
   const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
-      .then((result) => {
+      .then(() => {
+        dispatch({
+          type: 'sign-in',
+          payload: {
+            uuid: auth.currentUser?.uid,
+          },
+        });
         router.push('/');
       })
       .catch((error) => {
@@ -22,6 +36,12 @@ export default function SignInPage() {
   const signInWithCredentials = () => {
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
+        dispatch({
+          type: 'sign-in',
+          payload: {
+            uuid: auth.currentUser?.uid,
+          },
+        });
         router.push('/');
       })
       .catch((error) => {
