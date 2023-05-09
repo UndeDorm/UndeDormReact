@@ -37,12 +37,12 @@ export const getUser = async (id: string) => {
 
 export const upgradeToOwner = async (uid: string) => {
   let user = await getDoc(doc(firebaseDb, 'users', uid));
-  if (!user.data()?.isOwner)
-    updateDoc(doc(firebaseDb, 'users', uid), { isOwner: true }).then(response => {
-      alert("User updated")
-    }).catch(error => {
-      console.log(error.message)
-    })
+
+  if (!user.data()?.isOwner) {
+    return updateDoc(doc(firebaseDb, 'users', uid), { isOwner: true });
+  } else {
+    return null;
+  }
 };
 
 export const addHotel = ({

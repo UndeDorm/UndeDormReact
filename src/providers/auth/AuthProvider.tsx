@@ -52,6 +52,9 @@ const authReducer = (state = INITIAL_STATE, action: AuthProviderAction) => {
     case 'set-user': {
       return { ...state, user: action.payload.user };
     }
+    case 'become-owner': {
+      return { ...state, user: { ...state.user, isOwner: true } };
+    }
   }
 };
 
