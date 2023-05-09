@@ -1,48 +1,30 @@
 import styles from '../styles/Home.module.css';
 import { auth, firebaseDb, app } from '../src/firebase/firebase';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { doc } from 'firebase/firestore';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 import Link from 'next/link';
 import { getAuth } from 'firebase/auth';
-import { getUser } from '../src/firebase/database';
+import { getUser, upgradeToOwner } from '../src/firebase/database';
 import { onAuthStateChanged } from 'firebase/auth';
 import { updateDoc, getDoc } from 'firebase/firestore';
 
 
 export default function BecomeOwner() {
-    const [, setIsUserLoaded] = useState(false);
-    const [, setUsername] = useState('Guest');
+    const { state } = useContext(AuthContext);
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            setIsUserLoaded(false);
-            if (user) {
-                try {
-                    const data = await getUser(user.uid);
-                    setUsername(data ? data.firstName : 'Guest');
-                } catch (error) {
-                    console.warn('[Home]', error);
-                    setUsername('Guest');
-                }
-            } else {
-                setUsername('Guest');
-            }
-            setIsUserLoaded(true);
-        });
-
-        return unsubscribe;
-    }, []);
-
-    const uid = getAuth(app).currentUser?.uid;
+    const Upgrade = () => {
+        upgradeToOwner(state.user!.id);
+    };
 
     return (
         <div className={styles.container}>
             <main className={styles.main}>
-                {!uid && (<div className={styles.grid}>
+                {!state.isUserLoggedIn && (<div className={styles.grid}>
                     <h1 className={styles.title}>You are not logged in to become an owner</h1>
                     <Link
                         rel="icon"
-                        href="\"
+                        href="/"
                         className={styles.card}
                     >
                         <h2>Back &rarr;</h2>
@@ -51,21 +33,13 @@ export default function BecomeOwner() {
                         </div>
                     </Link>
                 </div>)}
-                {uid && (
-                    <div className={styles.grid}>
+                {state.isUserLoggedIn && (
+                    <div onClick={Upgrade} className={styles.grid}>
                         <Link
                             rel="icon"
                             href="/"
                             className={styles.card}
-                            onClick={async () => {
-                                let user = await getDoc(doc(firebaseDb, 'users', uid));
-                                if (user.data()!.isOwner == false)
-                                    updateDoc(doc(firebaseDb, 'users', uid), { isOwner: true }).then(response => {
-                                        alert("User updated")
-                                    }).catch(error => {
-                                        console.log(error.message)
-                                    })
-                            }} > <h2>Proprietar &rarr;</h2>
+                        > <h2>Proprietar &rarr;</h2>
                             <div>
                                 Click here to become an owner
                             </div>
