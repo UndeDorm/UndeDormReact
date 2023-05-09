@@ -57,7 +57,7 @@ export default function SignInPage() {
   };
 
   const forgotPassword = () => {
-    router.push('/forgotPassword');
+    router.push('/forgot-password');
   };
 
   return (

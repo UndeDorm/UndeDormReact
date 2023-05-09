@@ -12,6 +12,7 @@ const Topbar = () => {
   const onSignOut = () => {
     auth.signOut().then(() => {
       dispatch({ type: 'logout' });
+      router.push('/');
     });
   };
 

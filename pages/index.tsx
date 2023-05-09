@@ -35,7 +35,9 @@ export default function Home() {
           <>
             {
               <h1 className={styles.title}>
-                {`Hello, ${user?.firstName ?? 'Guest'}! Welcome to `}
+                {user?.firstName
+                  ? `Hello, ${user.firstName}! Welcome to `
+                  : 'Welcome to '}
                 <Link href="">{'UndeDorm'}</Link>
               </h1>
             }
