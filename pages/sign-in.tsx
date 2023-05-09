@@ -11,11 +11,12 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const { state, dispatch } = useContext(AuthContext);
 
-  if (state.isUserLoggedIn) {
-    console.log('You are currently logged in!');
-    router.push('/');
-    return;
-  }
+  useEffect(() => {
+    if (state.isUserLoggedIn) {
+      console.log('You are currently logged in!');
+      router.push('/');
+    }
+  }, [state]);
 
   const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
@@ -33,7 +34,8 @@ export default function SignInPage() {
       });
   };
 
-  const signInWithCredentials = () => {
+  const signInWithCredentials = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
         dispatch({
@@ -68,23 +70,25 @@ export default function SignInPage() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>Log in</h1>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={styles.input}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={styles.input}
-        />
-        <button onClick={signInWithCredentials} className={styles.card}>
-          <p>Log in</p>
-        </button>
+        <form className={styles.form} onSubmit={signInWithCredentials}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={styles.input}
+          />
+          <button type={'submit'} className={styles.card}>
+            <p>Log in</p>
+          </button>
+        </form>
 
         <button onClick={signInWithGoogle} className={styles.card}>
           <p>Log in with Google</p>

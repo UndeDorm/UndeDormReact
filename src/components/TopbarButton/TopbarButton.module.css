@@ -1,0 +1,15 @@
+.button{
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 1rem 1rem;
+}
+
+.button:hover{
+  color: #0070f3;
+}
+
+.button:active{
+  color: #0070f3;
+}

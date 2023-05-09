@@ -24,7 +24,7 @@ export default function Profile() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Reservari</h1>
+        <h1 className={styles.title}>Rezervari</h1>
       </main>
     </div>
   );

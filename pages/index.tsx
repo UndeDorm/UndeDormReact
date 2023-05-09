@@ -12,12 +12,6 @@ export default function Home() {
     state: { isUserLoggedIn, user },
   } = useContext(AuthContext);
 
-  const signOut = () => {
-    auth.signOut().then(() => {
-      dispatch({ type: 'logout' });
-    });
-  };
-
   const onSignIn = () => {
     router.push('/sign-in');
   };
@@ -36,60 +30,33 @@ export default function Home() {
 
       <main className={styles.main}>
         {!user && isUserLoggedIn ? (
-          <h1 className={styles.title}>Loading...</h1>
+          <h1 className={styles.title}>{'Loading...'}</h1>
         ) : (
           <>
             {
               <h1 className={styles.title}>
-                Hello, {user?.firstName ?? 'Guest'}! Welcome to{' '}
-                <a href="">UndeDorm</a>
+                {`Hello, ${user?.firstName ?? 'Guest'}! Welcome to `}
+                <Link href="">{'UndeDorm'}</Link>
               </h1>
             }
 
             {user && isUserLoggedIn && (
               <div className={styles.grid}>
                 <Link href="/profile" className={styles.card}>
-                  <h2>Profil &rarr;</h2>
-                  <p>
-                    Find in-depth information about Next.js features and API.
-                  </p>
+                  <h2>{'Profil'} &rarr;</h2>
                 </Link>
 
                 <Link href="/reservations" className={styles.card}>
-                  <h2>Rezervari &rarr;</h2>
-                  <p>
-                    Learn about Next.js in an interactive course with quizzes!
-                  </p>
+                  <h2>{'Rezervari'} &rarr;</h2>
                 </Link>
 
                 <Link href="/hotels" className={styles.card}>
-                  <h2>Cauta hotel &rarr;</h2>
-                  <p>
-                    Discover and deploy boilerplate example Next.js projects.
-                  </p>
-                </Link>
-
-                <Link
-                  href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.card}
-                >
-                  <h2>Deploy &rarr;</h2>
-                  <p>
-                    Instantly deploy your Next.js site to a public URL with
-                    Vercel.
-                  </p>
+                  <h2>{'Cauta hotel'} &rarr;</h2>
                 </Link>
               </div>
             )}
 
             <div className={styles.grid}>
-              {isUserLoggedIn && (
-                <button onClick={signOut} className={styles.card}>
-                  <p>Log out</p>
-                </button>
-              )}
               {!isUserLoggedIn && (
                 <button onClick={onSignIn} className={styles.card}>
                   <p>Sign In</p>

@@ -1,12 +1,12 @@
 import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  sendPasswordResetEmail, 
-  confirmPasswordReset 
+import {
+  getAuth,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
 } from 'firebase/auth';
 import { getStorage, ref } from 'firebase/storage';
 import { GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from "firebase/firestore";
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,16 +21,19 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 export const passwordReset = async (email: string) => {
-  return await sendPasswordResetEmail(auth, email)
-}
+  return await sendPasswordResetEmail(auth, email);
+};
 
 export const confirmThePasswordReset = async (
-  oobCode: string, newPassword: string
+  oobCode: string,
+  newPassword: string
 ) => {
-  if(!oobCode && !newPassword) return;
+  if (!oobCode && !newPassword) {
+    return Promise.reject('Invalid code or password');
+  }
 
-  return await confirmPasswordReset(auth, oobCode, newPassword)
-}
+  return await confirmPasswordReset(auth, oobCode, newPassword);
+};
 
 export const provider = new GoogleAuthProvider();
 
