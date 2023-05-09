@@ -69,6 +69,7 @@ export const addRoom = ({
     pricePerNight: room.pricePerNight,
     beds: room.beds,
     hotelId: room.hotelId,
+    id:room.id
   })
     .then(onSuccess)
     .catch(onFailure);
