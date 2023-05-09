@@ -64,6 +64,7 @@ export const addRoom = ({
   onFailure: (error: any) => void;
 }) => {
   setDoc(doc(firebaseDb, 'rooms', room.id), {
+    name: room.name,
     benefits: room.benefits,
     pricePerNight: room.pricePerNight,
     beds: room.beds,

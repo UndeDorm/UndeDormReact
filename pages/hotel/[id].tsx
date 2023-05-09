@@ -15,7 +15,7 @@ import styles from '../../styles/Home.module.css';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
-  const [hotelName, setHotelName] = useState<string>('');
+  const [hotelName, setHotelName] = useState<string>();
   const [hotelLocation, setHotelLocation] = useState<string>();
   const [hotelDescription, setHotelDescription] = useState<string>();
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
