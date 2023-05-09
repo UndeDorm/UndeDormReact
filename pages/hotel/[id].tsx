@@ -44,6 +44,7 @@ export default function HotelPage({ id }: { id: string }) {
         setHotelOwnerId(hotelData?.ownerId);
       } else {
         console.log('Hotel not found!');
+        router.push('/');
       }
     }
 
@@ -92,15 +93,8 @@ export default function HotelPage({ id }: { id: string }) {
     router.push('/ownerHotels');
   }
 
-  async function toggleAddRoom() {
-    var x = document.getElementById('addRoom');
-    if (x !== null) {
-      if (x.style.display === 'none') {
-        x.style.display = 'block';
-      } else {
-        x.style.display = 'none';
-      }
-    }
+  async function handleAddRoom() { 
+    router.push(`/hotel/addRoom/${id}`);
   }
 
   return (
@@ -180,10 +174,7 @@ export default function HotelPage({ id }: { id: string }) {
                   ))}
               </tbody>
             </table>
-            <button onClick={toggleAddRoom}>Add room</button>
-            <div id="addRoom">
-              <h1>This is my DIV element.</h1>
-            </div>
+            <button onClick={handleAddRoom}>Add room</button>
           </main>
         </>
       ) : (
