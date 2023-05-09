@@ -17,6 +17,7 @@ export const addUser = ({
     isOwner: user.isOwner,
     id: user.id,
     dateOfBirth: user.dateOfBirth,
+    email: user.email,
   })
     .then(onSuccess)
     .catch(onFailure);
