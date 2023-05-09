@@ -60,7 +60,7 @@ export default function HotelPage({ id }: { id: string }) {
         );
 
       const roomIds = roomsData.map((data) => data.id);
-      const roomnoBeds = roomsData.map((data) => data.nrBeds);
+      const roomnoBeds = roomsData.map((data) => data.beds);
       const roomprice = roomsData.map((data) => data.pricePerNight);
       const roomBenefits = roomsData.map((data) => data.benefits);
       const roomNames = roomsData.map((data) => data.name);
