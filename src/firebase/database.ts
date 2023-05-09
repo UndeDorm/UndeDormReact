@@ -36,6 +36,22 @@ export const getUser = async (id: string) => {
   }
 };
 
+export const editUser = ({
+  userId,
+  newData,
+  onSuccess,
+  onFailure,
+}: {
+  userId: string;
+  newData: Partial<BasicUser>;
+  onSuccess: () => void;
+  onFailure: (error: any) => void;
+}) => {
+  updateDoc(doc(firebaseDb, 'users', userId), newData)
+    .then(onSuccess)
+    .catch(onFailure);
+};
+
 export const upgradeToOwner = async (uid: string) => {
   let user = await getDoc(doc(firebaseDb, 'users', uid));
 

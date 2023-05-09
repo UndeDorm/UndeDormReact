@@ -13,7 +13,3 @@
 .button:active{
   color: #0070f3;
 }
-
-.button:focus{
-  color: #0070f3;
-}
