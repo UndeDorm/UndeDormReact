@@ -4,10 +4,12 @@ import AuthProvider from '../src/providers/auth/AuthProvider';
 import React from 'react';
 import { getUser } from '../src/firebase/database';
 import cookie from 'cookie';
+import Topbar from '../src/components/Topbar/Topbar';
 
 const App = ({ Component, pageProps, uuid, profile }: AppProps) => {
   return (
     <AuthProvider user={profile} isLogged={!!uuid}>
+      <Topbar />
       <Component {...pageProps} />
     </AuthProvider>
   );

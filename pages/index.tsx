@@ -12,12 +12,6 @@ export default function Home() {
     state: { isUserLoggedIn, user },
   } = useContext(AuthContext);
 
-  const signOut = () => {
-    auth.signOut().then(() => {
-      dispatch({ type: 'logout' });
-    });
-  };
-
   const onSignIn = () => {
     router.push('/sign-in');
   };
@@ -63,11 +57,6 @@ export default function Home() {
             )}
 
             <div className={styles.grid}>
-              {isUserLoggedIn && (
-                <button onClick={signOut} className={styles.card}>
-                  <p>Log out</p>
-                </button>
-              )}
               {!isUserLoggedIn && (
                 <button onClick={onSignIn} className={styles.card}>
                   <p>Sign In</p>

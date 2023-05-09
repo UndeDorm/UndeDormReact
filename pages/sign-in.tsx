@@ -15,7 +15,6 @@ export default function SignInPage() {
     if (state.isUserLoggedIn) {
       console.log('You are currently logged in!');
       router.push('/');
-      return;
     }
   }, [state]);
 
