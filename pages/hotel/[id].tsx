@@ -92,8 +92,15 @@ export default function HotelPage({ id }: { id: string }) {
     router.push('/ownerHotels');
   }
 
-  async function handleAddRoom() {
-    router.push('/hotel/addRoom');
+  async function toggleAddRoom() {
+    var x = document.getElementById('addRoom');
+    if (x !== null) {
+      if (x.style.display === 'none') {
+        x.style.display = 'block';
+      } else {
+        x.style.display = 'none';
+      }
+    }
   }
 
   return (
@@ -135,7 +142,7 @@ export default function HotelPage({ id }: { id: string }) {
               />
             </label>
             <button onClick={handleUpdateHotel}>Update Hotel</button>
-            <button onClick={handleAddRoom}>Add room</button>
+
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -173,6 +180,10 @@ export default function HotelPage({ id }: { id: string }) {
                   ))}
               </tbody>
             </table>
+            <button onClick={toggleAddRoom}>Add room</button>
+            <div id="addRoom">
+              <h1>This is my DIV element.</h1>
+            </div>
           </main>
         </>
       ) : (
