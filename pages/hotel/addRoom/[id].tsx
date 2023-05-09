@@ -1,4 +1,4 @@
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc } from 'firebase/firestore';
 import Head from 'next/head';
 import router from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -13,18 +13,18 @@ export default function AddRoomPage({ id }: { id: string }) {
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
   const [hotelId, setHotelId] = useState<string>();
   const roomName = useRef<string>('');
-  const roomId = useRef<string>('');
+  const myCollection = collection(firebaseDb, 'rooms');
+  const myDocRef = doc(myCollection);
   const noBeds = useRef<number>();
   const price = useRef<number>();
   const benefits = useRef<string[]>(['']);
-
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
       router.push('/');
       return;
-    } 
+    }
 
     async function fetchHotel() {
       const hotelRef = doc(firebaseDb, 'hotels', id);
@@ -49,12 +49,12 @@ export default function AddRoomPage({ id }: { id: string }) {
 
   const addRoomToDatabase = () => {
     const room: Room = {
-      id: roomId.current,
+      id: myDocRef.id,
       name: roomName.current,
       benefits: benefits.current,
       pricePerNight: price.current ?? 0,
       beds: noBeds.current ?? 0,
-      hotelId: id ?? '',
+      hotelId: id,
     };
 
     const onSuccess = () => {
@@ -87,7 +87,9 @@ export default function AddRoomPage({ id }: { id: string }) {
       <input
         placeholder="Benefits"
         className={styles.input}
-        onChange={(e) => (benefits.current = [...benefits.current, e.target.value])}
+        onChange={(e) =>
+          (benefits.current = [...benefits.current, e.target.value])
+        }
       />
       <button onClick={addRoomToDatabase} className={styles.button}>
         Add Hotel

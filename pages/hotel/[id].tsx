@@ -23,6 +23,7 @@ export default function HotelPage({ id }: { id: string }) {
   const [roomnoBeds, setRoomnoBeds] = useState<number[]>([]);
   const [roomprice, setRoomprice] = useState<number[]>([]);
   const [roomBenefits, setRoomBenefits] = useState<string[]>([]);
+  const [roomNames, setRoomNames] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -62,11 +63,13 @@ export default function HotelPage({ id }: { id: string }) {
       const roomnoBeds = roomsData.map((data) => data.nrBeds);
       const roomprice = roomsData.map((data) => data.pricePerNight);
       const roomBenefits = roomsData.map((data) => data.benefits);
+      const roomNames = roomsData.map((data) => data.name);
 
       setRoomIds(roomIds);
       setRoomnoBeds(roomnoBeds);
       setRoomprice(roomprice);
       setRoomBenefits(roomBenefits);
+      setRoomNames(roomNames);
     };
 
     fetchHotel();
@@ -93,7 +96,7 @@ export default function HotelPage({ id }: { id: string }) {
     router.push('/ownerHotels');
   }
 
-  async function handleAddRoom() { 
+  async function handleAddRoom() {
     router.push(`/hotel/addRoom/${id}`);
   }
 
@@ -141,6 +144,7 @@ export default function HotelPage({ id }: { id: string }) {
               <thead>
                 <tr>
                   <th>ID</th>
+                  <th>Name</th>
                   <th>Number Of Beds</th>
                   <th>Price</th>
                   <th>Benefits</th>
@@ -149,29 +153,23 @@ export default function HotelPage({ id }: { id: string }) {
                 </tr>
               </thead>
               <tbody>
-                {roomIds &&
-                  roomIds.map((roomId, index) => (
-                    <tr key={roomId}>
-                      <td className={styles.td}>{roomId}</td>
-                      <td className={styles.td}>
-                        {roomnoBeds && roomnoBeds[index]}
-                      </td>
-                      <td className={styles.td}>
-                        {roomprice && roomprice[index]}
-                      </td>
-                      <td className={styles.td}>
-                        {roomBenefits && roomBenefits[index]}
-                      </td>
-                      <td className={styles.td}>
-                        <button>Modify</button>
-                      </td>
-                      <td className={styles.td}>
-                        <button onClick={() => handleDeleteRoom(roomId)}>
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                {roomIds.map((roomId, index) => (
+                  <tr key={roomId}>
+                    <td className={styles.td}>{roomId}</td>
+                    <td className={styles.td}>{roomNames[index]}</td>
+                    <td className={styles.td}>{roomnoBeds[index]}</td>
+                    <td className={styles.td}>{roomprice[index]}</td>
+                    <td className={styles.td}>{roomBenefits[index]}</td>
+                    <td className={styles.td}>
+                      <button>Modify</button>
+                    </td>
+                    <td className={styles.td}>
+                      <button onClick={() => handleDeleteRoom(roomId)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
             <button onClick={handleAddRoom}>Add room</button>
