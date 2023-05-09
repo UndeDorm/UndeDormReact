@@ -12,15 +12,18 @@ export default function SignInPage() {
   const { state, dispatch } = useContext(AuthContext);
   const email = useRef<string>('');
   const password = useRef<string>('');
+  const repeatPassword = useRef<string>('');
   const firstName = useRef<string>('');
   const lastName = useRef<string>('');
   const dateOfBirth = useRef<Date>(new Date());
 
-  if (state.isUserLoggedIn) {
-    console.log('You are currently logged in!');
-    router.push('/');
-    return;
-  }
+  useEffect(() => {
+    if (state.isUserLoggedIn) {
+      console.log('You are currently logged in!');
+      router.push('/');
+      return;
+    }
+  }, [state]);
 
   const signUpWithGoogle = () => {
     signInWithPopup(auth, provider)
@@ -31,6 +34,7 @@ export default function SignInPage() {
           isOwner: false,
           id: result.user.uid,
           dateOfBirth: dateOfBirth.current.getTime(),
+          email: result.user.email ?? '',
         };
         const onSuccess = () => {
           dispatch({
@@ -56,7 +60,9 @@ export default function SignInPage() {
       });
   };
 
-  const signUpWithCredentials = () => {
+  const signUpWithCredentials = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     // verify that email string resembles an email
     if (
       !email.current.includes('@') ||
@@ -73,6 +79,30 @@ export default function SignInPage() {
       return;
     }
 
+    // verify that password and repeat password match
+    if (password.current !== repeatPassword.current) {
+      alert('Passwords do not match.');
+      return;
+    }
+
+    // verify that first name is not empty
+    if (firstName.current.length < 1) {
+      alert('Please enter your first name.');
+      return;
+    }
+
+    // verify that last name is not empty
+    if (lastName.current.length < 1) {
+      alert('Please enter your last name.');
+      return;
+    }
+
+    // verify that date of birth is at least 1 day old
+    if (dateOfBirth.current.getTime() > new Date().getTime()) {
+      alert('Please enter your date of birth.');
+      return;
+    }
+
     createUserWithEmailAndPassword(auth, email.current, password.current)
       .then((userCredential) => {
         const user: BasicUser = {
@@ -81,6 +111,7 @@ export default function SignInPage() {
           isOwner: false,
           id: userCredential.user.uid,
           dateOfBirth: dateOfBirth.current.getTime(),
+          email: userCredential.user.email ?? '',
         };
         const onSuccess = () => {
           dispatch({
@@ -118,41 +149,50 @@ export default function SignInPage() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Sign Up</h1>
-        <input
-          type="email"
-          placeholder="Email"
-          onChange={(e) => (email.current = e.target.value)}
-          className={styles.input}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => (password.current = e.target.value)}
-          className={styles.input}
-        />
-        <input
-          placeholder="First Name"
-          className={styles.input}
-          onChange={(e) => (firstName.current = e.target.value)}
-        />
-        <input
-          placeholder="Last Name"
-          className={styles.input}
-          onChange={(e) => (lastName.current = e.target.value)}
-        />
-        <input
-          type="date"
-          placeholder="Date Of Birth"
-          className={styles.input}
-          onChange={(e) => (dateOfBirth.current = new Date(e.target.value))}
-        />
-        <button onClick={signUpWithCredentials} className={styles.card}>
-          <p>Sign Up</p>
-        </button>
+        <h1 className={styles.title}>{'Sign Up'}</h1>
+        <form onSubmit={signUpWithCredentials} className={styles.form}>
+          <input
+            type="email"
+            placeholder="Email"
+            onChange={(e) => (email.current = e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            onChange={(e) => (password.current = e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="Repeat Password"
+            onChange={(e) => (repeatPassword.current = e.target.value)}
+            className={styles.input}
+          />
+
+          <input
+            placeholder="First Name"
+            className={styles.input}
+            onChange={(e) => (firstName.current = e.target.value)}
+          />
+          <input
+            placeholder="Last Name"
+            className={styles.input}
+            onChange={(e) => (lastName.current = e.target.value)}
+          />
+          <input
+            type="date"
+            placeholder="Date Of Birth"
+            className={styles.input}
+            onChange={(e) => (dateOfBirth.current = new Date(e.target.value))}
+          />
+          <button type="submit" className={styles.card}>
+            <p>{'Sign Up'}</p>
+          </button>
+        </form>
 
         <button onClick={signUpWithGoogle} className={styles.card}>
-          <p>Sign Up with Google</p>
+          <p>{'Sign Up with Google'}</p>
         </button>
       </main>
     </div>

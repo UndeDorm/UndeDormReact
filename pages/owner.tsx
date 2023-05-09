@@ -38,7 +38,14 @@ export default function BecomeOwner() {
         {state.user!.isOwner && (
           <div className={styles.grid}>
             <h1 className={styles.title}>{'You already are an owner'}</h1>
-            <Link rel="icon" href="/" className={styles.card}>
+            <Link
+              rel="icon"
+              href=""
+              className={styles.card}
+              onClick={() => {
+                router.back();
+              }}
+            >
               <h2>{'Back '}&rarr;</h2>
             </Link>
           </div>

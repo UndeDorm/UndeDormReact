@@ -4,6 +4,7 @@ export interface BasicUser {
   isOwner: boolean;
   id: string;
   dateOfBirth: number;
+  email: string;
 }
 
 export interface Hotel {

@@ -19,6 +19,7 @@ export const addUser = ({
     isOwner: user.isOwner,
     id: user.id,
     dateOfBirth: user.dateOfBirth,
+    email: user.email,
   })
     .then(onSuccess)
     .catch(onFailure);
@@ -33,6 +34,22 @@ export const getUser = async (id: string) => {
   } else {
     return null;
   }
+};
+
+export const editUser = ({
+  userId,
+  newData,
+  onSuccess,
+  onFailure,
+}: {
+  userId: string;
+  newData: Partial<BasicUser>;
+  onSuccess: () => void;
+  onFailure: (error: any) => void;
+}) => {
+  updateDoc(doc(firebaseDb, 'users', userId), newData)
+    .then(onSuccess)
+    .catch(onFailure);
 };
 
 export const upgradeToOwner = async (uid: string) => {

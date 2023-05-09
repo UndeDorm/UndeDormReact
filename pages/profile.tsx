@@ -1,7 +1,89 @@
 import Head from 'next/head';
+import router from 'next/router';
+import { useContext, useRef } from 'react';
+import { editUser } from '../src/firebase/database';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 import styles from '../styles/Home.module.css';
 
 export default function Profile() {
+  const { state, dispatch } = useContext(AuthContext);
+
+  const firstNameRef = useRef<string>(state.user?.firstName ?? '');
+  const lastNameRef = useRef<string>(state.user?.lastName ?? '');
+  // const emailRef = useRef<string>('');
+  const dateOfBirthRef = useRef<string>(
+    state.user?.dateOfBirth?.toString() ?? ''
+  );
+
+  const onBecomeOwner = () => {
+    router.push('/owner');
+  };
+
+  const onSave = () => {
+    const onSuccess = () => {
+      dispatch({
+        type: 'set-user',
+        payload: {
+          user: {
+            ...state.user,
+            firstName: firstNameRef.current,
+            lastName: lastNameRef.current,
+            dateOfBirth: new Date(dateOfBirthRef.current).getTime(),
+          },
+        },
+      });
+      alert('Profile updated successfully!');
+    };
+
+    const onFailure = (error: any) => {
+      console.log(error);
+      alert('Error updating profile!');
+    };
+
+    if (!firstNameRef.current) {
+      alert('First name cannot be empty!');
+      return;
+    }
+
+    if (!lastNameRef.current) {
+      alert('Last name cannot be empty!');
+      return;
+    }
+
+    let newData = {};
+
+    if (firstNameRef.current !== state.user?.firstName) {
+      newData = { ...newData, firstName: firstNameRef.current };
+    }
+
+    if (lastNameRef.current !== state.user?.lastName) {
+      newData = { ...newData, lastName: lastNameRef.current };
+    }
+
+    if (
+      new Date(dateOfBirthRef.current).getTime() !== state.user?.dateOfBirth
+    ) {
+      newData = {
+        ...newData,
+        dateOfBirth: new Date(dateOfBirthRef.current).getTime(),
+      };
+    }
+
+    if (Object.keys(newData).length === 0) {
+      alert('No changes were made!');
+      return;
+    }
+
+    if (state.user?.id) {
+      editUser({
+        userId: state.user?.id,
+        newData,
+        onSuccess,
+        onFailure,
+      });
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,7 +93,48 @@ export default function Profile() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Pagina de profil</h1>
+        <h3>{'First Name'}</h3>
+        <input
+          type="text"
+          className={styles.input}
+          defaultValue={state.user?.firstName}
+          onChange={(e) => {
+            firstNameRef.current = e.target.value;
+          }}
+        />
+        <h3>{'Last Name'}</h3>
+        <input
+          type="text"
+          className={styles.input}
+          defaultValue={state.user?.lastName}
+          onChange={(e) => {
+            lastNameRef.current = e.target.value;
+          }}
+        />
+        <h3>{'Email'}</h3>
+        <input
+          type="email"
+          className={styles.input}
+          defaultValue={state.user?.email}
+          disabled
+        />
+        <h3>{'Birth Date'}</h3>
+        <input
+          type="date"
+          className={styles.input}
+          defaultValue={new Date(state.user?.dateOfBirth ?? '')
+            .toISOString()
+            .slice(0, 10)}
+          onChange={(e) => {
+            dateOfBirthRef.current = e.target.value;
+          }}
+        />
+        <button className={styles.card} onClick={onBecomeOwner}>
+          <h3>{'Become Owner'}</h3>
+        </button>
+        <button className={styles.card} onClick={onSave}>
+          <h3>{'Save'}</h3>
+        </button>
       </main>
     </div>
   );

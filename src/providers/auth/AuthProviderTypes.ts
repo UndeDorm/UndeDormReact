@@ -4,7 +4,6 @@ import { BasicUser } from '../../utils/types';
 export type AuthProviderStateType = {
   isUserLoggedIn: boolean;
   user: BasicUser | undefined;
-  // requestStatus: RequestStatusType;
 };
 
 export type RequestStatusType = 'initial-loading' | 'loading' | 'success';
