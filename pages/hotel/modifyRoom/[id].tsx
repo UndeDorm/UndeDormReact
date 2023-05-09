@@ -50,7 +50,7 @@ export default function ModifyRoom({ id }: { id: string }) {
     }
 
     fetchHotel();
-  }, []);
+  }, [hotelId, id, state.isUserLoggedIn]);
 
   return (
     <div className={styles.container}>
