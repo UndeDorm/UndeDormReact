@@ -1,13 +1,8 @@
 import styles from '../styles/Home.module.css';
-import { auth, firebaseDb, app } from '../src/firebase/firebase';
-import { useContext, useEffect, useState } from 'react';
-import { doc } from 'firebase/firestore';
+import { useContext } from 'react';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import Link from 'next/link';
-import { getAuth } from 'firebase/auth';
-import { getUser, upgradeToOwner } from '../src/firebase/database';
-import { onAuthStateChanged } from 'firebase/auth';
-import { updateDoc, getDoc } from 'firebase/firestore';
+import { upgradeToOwner } from '../src/firebase/database';
 
 
 export default function BecomeOwner() {
@@ -20,8 +15,8 @@ export default function BecomeOwner() {
     return (
         <div className={styles.container}>
             <main className={styles.main}>
-                {!state.isUserLoggedIn && (<div className={styles.grid}>
-                    <h1 className={styles.title}>You are not logged in to become an owner</h1>
+                {(!state.isUserLoggedIn || state.user!.isOwner) && (<div className={styles.grid}>
+                    <h1 className={styles.title}>Cannot upgrade to owner</h1>
                     <Link
                         rel="icon"
                         href="/"
@@ -33,7 +28,7 @@ export default function BecomeOwner() {
                         </div>
                     </Link>
                 </div>)}
-                {state.isUserLoggedIn && (
+                {(state.isUserLoggedIn && !state.user!.isOwner) && (
                     <div onClick={Upgrade} className={styles.grid}>
                         <Link
                             rel="icon"
