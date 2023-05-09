@@ -28,6 +28,9 @@ export type AuthProviderAction =
       payload: {
         user: any;
       };
+    }
+  | {
+      type: 'become-owner';
     };
 
 export type AuthProviderReducer = Reducer<

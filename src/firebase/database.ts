@@ -1,6 +1,8 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { BasicUser, Hotel, Room, ReservationRequest } from '../utils/types';
 import { firebaseDb } from './firebase';
+import { useContext } from 'react';
+import { AuthContext } from '../providers/auth/AuthProvider';
 
 export const addUser = ({
   user,
@@ -29,6 +31,16 @@ export const getUser = async (id: string) => {
 
   if (docSnap.exists()) {
     return docSnap.data() as BasicUser;
+  } else {
+    return null;
+  }
+};
+
+export const upgradeToOwner = async (uid: string) => {
+  let user = await getDoc(doc(firebaseDb, 'users', uid));
+
+  if (!user.data()?.isOwner) {
+    return updateDoc(doc(firebaseDb, 'users', uid), { isOwner: true });
   } else {
     return null;
   }
