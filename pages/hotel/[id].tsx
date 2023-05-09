@@ -86,6 +86,10 @@ export default function HotelPage({ id }: { id: string }) {
     }
   };
 
+  const handleModifyRoom = async (roomId: string) => {
+    router.push(`/hotel/modifyRoom/${roomId}`);
+  };
+
   async function handleUpdateHotel() {
     const hotelRef = doc(firebaseDb, 'hotels', id);
     await updateDoc(hotelRef, {
@@ -161,7 +165,9 @@ export default function HotelPage({ id }: { id: string }) {
                     <td className={styles.td}>{roomprice[index]}</td>
                     <td className={styles.td}>{roomBenefits[index]}</td>
                     <td className={styles.td}>
-                      <button>Modify</button>
+                      <button onClick={() => handleModifyRoom(roomId)}>
+                        Modify
+                      </button>
                     </td>
                     <td className={styles.td}>
                       <button onClick={() => handleDeleteRoom(roomId)}>
