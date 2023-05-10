@@ -68,7 +68,7 @@ export default function AddRoomPage({ id }: { id: string }) {
 
   return (
     <main className={styles.main}>
-      <h1 className={styles.title}>Add a hotel</h1>
+      <h1 className={styles.title}>Add a room</h1>
       <input
         placeholder="Name"
         onChange={(e) => (roomName.current = e.target.value)}
@@ -92,7 +92,7 @@ export default function AddRoomPage({ id }: { id: string }) {
         }
       />
       <button onClick={addRoomToDatabase} className={styles.button}>
-        Add Hotel
+        Add Room
       </button>
     </main>
   );

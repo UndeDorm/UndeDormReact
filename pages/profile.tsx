@@ -17,7 +17,6 @@ export default function Profile() {
 
   const firstNameRef = useRef<string>(state.user?.firstName ?? '');
   const lastNameRef = useRef<string>(state.user?.lastName ?? '');
-  // const emailRef = useRef<string>('');
   const dateOfBirthRef = useRef<string>(
     state.user?.dateOfBirth?.toString() ?? ''
   );

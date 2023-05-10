@@ -40,6 +40,7 @@ export default function HotelList() {
     try {
       deleteDoc(doc(firebaseDb, 'hotels', hotelId))
         .then(() => {
+          router.reload();
           console.log('Hotel deleted successfully!');
           hotelsData.current = hotelsData.current.filter(
             (hotel) => hotel.id !== hotelId
