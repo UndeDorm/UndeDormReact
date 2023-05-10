@@ -176,6 +176,22 @@ export const getRoom = async (id: string) => {
   }
 };
 
+export const editRoom = ({
+  roomId,
+  newData,
+  onSuccess,
+  onFailure,
+}: {
+  roomId: string;
+  newData: Partial<Room>;
+  onSuccess: () => void;
+  onFailure: (error: any) => void;
+}) => {
+  updateDoc(doc(firebaseDb, 'rooms', roomId), newData)
+    .then(onSuccess)
+    .catch(onFailure);
+};
+
 export const addReservationRequest = ({
   reservationRequest,
   onSuccess,

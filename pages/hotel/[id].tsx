@@ -27,7 +27,8 @@ export default function HotelPage({ id }: { id: string }) {
   const [roomNames, setRoomNames] = useState<string[]>([]);
   const [originalHotelName, setOriginalHotelName] = useState<string>();
   const [originalHotelLocation, setOriginalHotelLocation] = useState<string>();
-  const [originalhotelDescription, setOriginalHotelDescription] = useState<string>();
+  const [originalhotelDescription, setOriginalHotelDescription] =
+    useState<string>();
   const router = useRouter();
 
   useEffect(() => {
@@ -101,6 +102,10 @@ export default function HotelPage({ id }: { id: string }) {
     router.push(`/hotel/add-room/${id}`);
   }
 
+  async function handleViewRoom(roomId: string) {
+    router.push(`/hotel/view-room/${roomId}`);
+  }
+
   const onSave = () => {
     const onSuccess = async () => {
       const hotelRef = doc(firebaseDb, 'hotels', id);
@@ -171,34 +176,30 @@ export default function HotelPage({ id }: { id: string }) {
           </Head>
 
           <main className={styles.main}>
-            <h1 className={styles.title}>
-              {'Your Hotel'}
-            </h1>
+            <h1 className={styles.title}>{'Your Hotel'}</h1>
             <input
-                type="text"
-                className={styles.input}
-                defaultValue={hotelName}
-                onChange={(e) => setHotelName(e.target.value)}
-              />
-            <h2>
-              {'Location:'}
-            </h2>
-              <input
-                type="text"
-                className={styles.input}
-                defaultValue={hotelLocation}
-                onChange={(e) => setHotelLocation(e.target.value)}
-              />
-            <h2>
-              Description:
-            </h2>
-              <input
-                type="text"
-                className={styles.input}
-                defaultValue={hotelDescription}
-                onChange={(e) => setHotelDescription(e.target.value)}
-              />
-            <button className={styles.card} onClick={onSave}>Update Hotel</button>
+              type="text"
+              className={styles.input}
+              defaultValue={hotelName}
+              onChange={(e) => setHotelName(e.target.value)}
+            />
+            <h2>{'Location:'}</h2>
+            <input
+              type="text"
+              className={styles.input}
+              defaultValue={hotelLocation}
+              onChange={(e) => setHotelLocation(e.target.value)}
+            />
+            <h2>Description:</h2>
+            <input
+              type="text"
+              className={styles.input}
+              defaultValue={hotelDescription}
+              onChange={(e) => setHotelDescription(e.target.value)}
+            />
+            <button className={styles.card} onClick={onSave}>
+              Update Hotel
+            </button>
 
             <table className={styles.table}>
               <thead>
@@ -219,12 +220,18 @@ export default function HotelPage({ id }: { id: string }) {
                     <td className={styles.td}>{roomprice[index]}</td>
                     <td className={styles.td}>{roomBenefits[index]}</td>
                     <td className={styles.td}>
-                      <button className={styles.card} onClick={() => handleModifyRoom(roomId)}>
+                      <button
+                        className={styles.card}
+                        onClick={() => handleModifyRoom(roomId)}
+                      >
                         Modify
                       </button>
                     </td>
                     <td className={styles.td}>
-                      <button className={styles.card} onClick={() => handleDeleteRoom(roomId)}>
+                      <button
+                        className={styles.card}
+                        onClick={() => handleDeleteRoom(roomId)}
+                      >
                         Delete
                       </button>
                     </td>
@@ -232,7 +239,9 @@ export default function HotelPage({ id }: { id: string }) {
                 ))}
               </tbody>
             </table>
-            <button className={styles.card} onClick={handleAddRoom}>Add room</button>
+            <button className={styles.card} onClick={handleAddRoom}>
+              Add room
+            </button>
           </main>
         </>
       ) : (
@@ -274,7 +283,12 @@ export default function HotelPage({ id }: { id: string }) {
                         {roomBenefits && roomBenefits[index]}
                       </td>
                       <td className={styles.td}>
-                        <button>View</button>
+                        <button
+                          className={styles.card}
+                          onClick={() => handleViewRoom(roomId)}
+                        >
+                          View
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -286,7 +300,6 @@ export default function HotelPage({ id }: { id: string }) {
     </div>
   );
 }
-
 
 export async function getServerSideProps(context: any) {
   const { id } = context.query;

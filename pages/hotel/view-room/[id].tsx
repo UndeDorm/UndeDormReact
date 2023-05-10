@@ -27,10 +27,6 @@ export default function ModifyRoom({ id }: { id: string }) {
   const [roomBenefits, setRoomBenefits] = useState<string>();
   const [hotelId, setHotelId] = useState<string>();
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
-  const [originalRoomName, setOriginalRoomName] = useState<string>();
-  const [originalRoomnoBeds, setOriginalRoomnoBeds] = useState<number>();
-  const [originalRoomprice, setOriginalRoomprice] = useState<number>();
-  const [originalRoomBenefits, setOriginalRoomBenefits] = useState<string>();
   const router = useRouter();
 
   useEffect(() => {
@@ -51,10 +47,6 @@ export default function ModifyRoom({ id }: { id: string }) {
         setRoomnoBeds(roomData?.beds);
         setRoomprice(roomData?.pricePerNight);
         setRoomBenefits(roomData?.benefits);
-        setOriginalRoomName(roomData?.name);
-        setOriginalRoomnoBeds(roomData?.beds);
-        setOriginalRoomprice(roomData?.pricePerNight);
-        setOriginalRoomBenefits(roomData?.benefits);
       } else {
         console.log('Room not found!');
         router.push('/');
@@ -80,75 +72,6 @@ export default function ModifyRoom({ id }: { id: string }) {
     fetchHotels();
   }, [id, state, router, hotelId]);
 
-  const onSave = () => {
-    const onSuccess = async () => {
-      const roomRef = doc(firebaseDb, 'rooms', id);
-      await updateDoc(roomRef, {
-        name: roomName,
-        beds: roomnoBeds,
-        pricePerNight: roomprice,
-        benefits: roomBenefits,
-      });
-      alert('Room updated successfully!');
-      router.back();
-    };
-
-    const onFailure = (error: any) => {
-      console.log(error);
-      alert('Error updating room!');
-    };
-
-    if (!roomName) {
-      alert('Room name cannot be empty!');
-      return;
-    }
-
-    if (!roomnoBeds) {
-      alert('Room number of beds cannot be empty!');
-      return;
-    }
-
-    if (!roomprice) {
-      alert('Room price cannot be empty!');
-      return;
-    }
-
-    if (!roomBenefits) {
-      alert('Room benefits cannot be empty!');
-      return;
-    }
-
-    let newData = {};
-
-    if (roomName !== originalRoomName) {
-      newData = { ...newData, name: roomName };
-    }
-
-    if (roomnoBeds !== originalRoomnoBeds) {
-      newData = { ...newData, noBeds: roomnoBeds };
-    }
-
-    if (roomprice !== originalRoomprice) {
-      newData = { ...newData, price: roomprice };
-    }
-
-    if (roomBenefits !== originalRoomBenefits) {
-      newData = { ...newData, benefits: roomBenefits };
-    }
-
-    if (Object.keys(newData).length === 0) {
-      alert('No changes were made!');
-      return;
-    }
-
-    editRoom({
-      roomId: id,
-      newData,
-      onSuccess,
-      onFailure,
-    });
-  };
-
   return (
     <div className={styles.container}>
       <Head>
@@ -163,34 +86,42 @@ export default function ModifyRoom({ id }: { id: string }) {
             {state.user?.isOwner && state.user?.id === hotelOwnerId ? (
               <main className={styles.main}>
                 <h1>{'Room name'}</h1>
-                <input
-                  type="text"
-                  value={roomName}
-                  onChange={(e) => setRoomName(e.target.value)}
-                />
-                <h1>{'Room number of beds'}</h1>
-                <input
-                  type="number"
-                  value={roomnoBeds}
-                  onChange={(e) => setRoomnoBeds(parseInt(e.target.value))}
-                />
-                <h1>{'Room price'}</h1>
-                <input
-                  type="number"
-                  value={roomprice}
-                  onChange={(e) => setRoomprice(parseInt(e.target.value))}
-                />
-                <h1>{'Room benefits'}</h1>
-                <input
-                  type="text"
-                  value={roomBenefits}
-                  onChange={(e) => setRoomBenefits(e.target.value)}
-                />
-                <button onClick={onSave}>Save</button>
+                <h2>{roomName}</h2>
+
+                <h2>
+                  {'Room number of beds: '}
+                  {roomnoBeds}
+                </h2>
+
+                <h2>
+                  {'Price per night: '}
+                  {roomprice}
+                </h2>
+
+                <h2>
+                  {'Room benefits: '}
+                  {roomBenefits}
+                </h2>
               </main>
             ) : (
               <main className={styles.main}>
-                <h1>You are not authorized to modify this room!</h1>
+                <h1>{'Room name'}</h1>
+                <h2>{roomName}</h2>
+
+                <h2>
+                  {'Room number of beds: '}
+                  {roomnoBeds}
+                </h2>
+
+                <h2>
+                  {'Price per night: '}
+                  {roomprice}
+                </h2>
+
+                <h2>
+                  {'Room benefits: '}
+                  {roomBenefits}
+                </h2>
               </main>
             )}
           </>
