@@ -5,6 +5,8 @@ import { AuthContext } from '../src/providers/auth/AuthProvider';
 import { useRouter } from 'next/router';
 import { firebaseDb, storage, storageRef } from '../src/firebase/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { getHotels } from '../src/firebase/database';
+import { Hotel } from '../src/utils/types';
 
 export default function HotelList() {
   const { state } = useContext(AuthContext);
@@ -13,7 +15,7 @@ export default function HotelList() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const hotelsData = useRef<any[]>([]);
+  const hotelsData = useRef<Hotel[]>([]);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -21,14 +23,9 @@ export default function HotelList() {
       router.push('/');
     } else {
       console.log(hotelsRef);
-      getDocs(hotelsRef)
-        .then((hotelsSnapshot) => {
-          const data = hotelsSnapshot.docs
-            .map((doc) => doc.data())
-            .filter((data) => !!data.name);
-
-          console.log(hotelsData);
-          hotelsData.current = data;
+      getHotels()
+        .then((data) => {
+          hotelsData.current = data ?? [];
         })
         .catch((error) => {
           console.error('Error getting hotels:', error);

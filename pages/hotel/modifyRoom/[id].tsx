@@ -2,7 +2,7 @@ import { collection, doc, getDoc } from 'firebase/firestore';
 import Head from 'next/head';
 import router from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { addRoom } from '../../../src/firebase/database';
+import { addRoom, getHotel, getRoom } from '../../../src/firebase/database';
 import { firebaseDb } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Room } from '../../../src/utils/types';
@@ -10,11 +10,11 @@ import styles from '../../../styles/Home.module.css';
 
 export default function ModifyRoom({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
-  const [roomName, setRoomName] = useState<string>();
-  const [roomnoBeds, setRoomnoBeds] = useState<number>();
-  const [roomprice, setRoomprice] = useState<number>();
-  const [roomBenefits, setRoomBenefits] = useState<string[]>([]);
-  const [hotelId, setHotelId] = useState<string>();
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const roomDetails = useRef<Room>();
+
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
 
   useEffect(() => {
@@ -23,42 +23,55 @@ export default function ModifyRoom({ id }: { id: string }) {
       router.push('/');
       return;
     }
+    getRoom(id)
+      .then((data) => {
+        roomDetails.current = data;
 
-    async function fetchRoom() {
-      const roomRef = doc(firebaseDb, 'rooms', id);
-      const roomSnapshot = await getDoc(roomRef);
-
-      if (roomSnapshot.exists()) {
-        const roomData = roomSnapshot.data();
-        setRoomName(roomData?.name);
-        setRoomnoBeds(roomData?.noBeds);
-        setRoomprice(roomData?.price);
-        setRoomBenefits(roomData?.benefits);
-        setHotelId(roomData?.hotelId);
-      }
-    }
-
-    fetchRoom();
-    async function fetchHotel() {
-      const hotelRef = doc(firebaseDb, 'hotels', hotelId ?? '');
-      const hotelSnapshot = await getDoc(hotelRef);
-
-      if (hotelSnapshot.exists()) {
-        const hotelData = hotelSnapshot.data();
-        setHotelOwnerId(hotelData?.ownerId);
-      }
-    }
-
-    fetchHotel();
-  }, [hotelId, id, state.isUserLoggedIn]);
+        getHotel(data.hotelId)
+          .then((hotelData) => {
+            setHotelOwnerId(hotelData?.ownerId);
+            console.log(hotelData);
+          })
+          .catch((error) => {
+            Promise.reject(error);
+          });
+      })
+      .catch((error) => {
+        console.error('Error getting room:', error);
+      })
+      .finally(() => setIsLoading(false));
+  }, [id, state.isUserLoggedIn]);
 
   return (
     <div className={styles.container}>
-      {state.user?.isOwner && state.user?.id === hotelOwnerId ? (
-        <>you re the owner</>
-      ) : (
-        <>you re not the owner</>
-      )}
+      <Head>
+        <title>Modify Room</title>
+        <meta name="description" content="Modify Room" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main className={styles.main}>
+        {isLoading ? (
+          <h2>Loading...</h2>
+        ) : (
+          <>
+            {state.user?.isOwner && state.user?.id === hotelOwnerId ? (
+              <h2>you re the owner</h2>
+            ) : (
+              <h2>you re not the owner</h2>
+            )}
+          </>
+        )}
+      </main>
     </div>
   );
+}
+
+export async function getServerSideProps(context: any) {
+  const { id } = context.query;
+  return {
+    props: {
+      id,
+    },
+  };
 }

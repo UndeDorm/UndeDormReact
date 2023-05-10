@@ -1,4 +1,11 @@
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { BasicUser, Hotel, Room, ReservationRequest } from '../utils/types';
 import { firebaseDb } from './firebase';
 import { useContext } from 'react';
@@ -83,6 +90,31 @@ export const addHotel = ({
     .catch(onFailure);
 };
 
+export const getHotel = async (id: string) => {
+  const docRef = doc(firebaseDb, 'hotels', id);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data() as Hotel;
+  } else {
+    return Promise.reject('Hotel not found');
+  }
+};
+
+export const getHotels = async () => {
+  const hotelsRef = collection(firebaseDb, 'hotels');
+
+  const hotelsSnap = await getDocs(hotelsRef);
+
+  if (hotelsSnap) {
+    return hotelsSnap.docs
+      .map((doc) => doc.data())
+      .filter((data) => !!data.name) as Hotel[];
+  } else {
+    return null;
+  }
+};
+
 export const addRoom = ({
   room,
   onSuccess,
@@ -98,10 +130,21 @@ export const addRoom = ({
     pricePerNight: room.pricePerNight,
     beds: room.beds,
     hotelId: room.hotelId,
-    id:room.id
+    id: room.id,
   })
     .then(onSuccess)
     .catch(onFailure);
+};
+
+export const getRoom = async (id: string) => {
+  const docRef = doc(firebaseDb, 'rooms', id);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data() as Room;
+  } else {
+    return Promise.reject('Room not found');
+  }
 };
 
 export const addReservationRequest = ({

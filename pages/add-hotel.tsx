@@ -17,19 +17,19 @@ export default function AddHotelPage() {
   const myCollection = collection(firebaseDb, 'hotels');
   const myDocRef = doc(myCollection);
 
-useEffect(() => {
-  if (!state.isUserLoggedIn) {
-    console.log('You are not logged in!');
-    router.push('/');
-    return;
-  } else {
-    if (!state.user?.isOwner) {
-      console.log('You are not an owner!');
+  useEffect(() => {
+    if (!state.isUserLoggedIn) {
+      console.log('You are not logged in!');
       router.push('/');
       return;
+    } else {
+      if (!state.user?.isOwner) {
+        console.log('You are not an owner!');
+        router.push('/');
+        return;
+      }
     }
-  }
-}, [state]);
+  }, [state]);
 
   const addHotelToDatabase = () => {
     const hotel: Hotel = {
@@ -74,7 +74,7 @@ useEffect(() => {
         onChange={(e) => (images.current = [...images.current, e.target.value])}
       />
       <button onClick={addHotelToDatabase} className={styles.button}>
-        Add Hotel
+        {'Add Hotel'}
       </button>
     </main>
   );
