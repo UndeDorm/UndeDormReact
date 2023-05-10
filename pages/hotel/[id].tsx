@@ -261,7 +261,7 @@ export default function HotelPage({ id }: { id: string }) {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>Name</th>
                   <th>Number Of Beds</th>
                   <th>Price</th>
                   <th>Benefits</th>
@@ -272,7 +272,7 @@ export default function HotelPage({ id }: { id: string }) {
                 {roomIds &&
                   roomIds.map((roomId, index) => (
                     <tr key={roomId}>
-                      <td className={styles.td}>{roomId}</td>
+                      <td className={styles.td}>{roomNames[index]}</td>
                       <td className={styles.td}>
                         {roomnoBeds && roomnoBeds[index]}
                       </td>
