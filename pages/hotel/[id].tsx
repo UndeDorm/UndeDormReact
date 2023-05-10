@@ -9,6 +9,7 @@ import {
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
+import { editHotel } from '../../src/firebase/database';
 import { firebaseDb } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
@@ -24,6 +25,9 @@ export default function HotelPage({ id }: { id: string }) {
   const [roomprice, setRoomprice] = useState<number[]>([]);
   const [roomBenefits, setRoomBenefits] = useState<string[]>([]);
   const [roomNames, setRoomNames] = useState<string[]>([]);
+  const [originalHotelName, setOriginalHotelName] = useState<string>();
+  const [originalHotelLocation, setOriginalHotelLocation] = useState<string>();
+  const [originalhotelDescription, setOriginalHotelDescription] = useState<string>();
   const router = useRouter();
 
   useEffect(() => {
@@ -43,6 +47,9 @@ export default function HotelPage({ id }: { id: string }) {
         setHotelLocation(hotelData?.location);
         setHotelDescription(hotelData?.description);
         setHotelOwnerId(hotelData?.ownerId);
+        setOriginalHotelName(hotelData?.name);
+        setOriginalHotelLocation(hotelData?.location);
+        setOriginalHotelDescription(hotelData?.description);
       } else {
         console.log('Hotel not found!');
         router.push('/');
@@ -90,19 +97,68 @@ export default function HotelPage({ id }: { id: string }) {
     router.push(`/hotel/modify-room/${roomId}`);
   };
 
-  async function handleUpdateHotel() {
-    const hotelRef = doc(firebaseDb, 'hotels', id);
-    await updateDoc(hotelRef, {
-      name: hotelName,
-      location: hotelLocation,
-      description: hotelDescription,
-    });
-    router.push('/owner-hotels');
-  }
-
   async function handleAddRoom() {
     router.push(`/hotel/add-room/${id}`);
   }
+
+  const onSave = () => {
+    const onSuccess = async () => {
+      const hotelRef = doc(firebaseDb, 'hotels', id);
+      await updateDoc(hotelRef, {
+        name: hotelName,
+        location: hotelLocation,
+        description: hotelDescription,
+      });
+      alert('Hotel updated successfully!');
+      router.push('/owner-hotels');
+    };
+
+    const onFailure = (error: any) => {
+      console.log(error);
+      alert('Error updating hotel!');
+    };
+
+    if (!hotelName) {
+      alert('Hotel name cannot be empty!');
+      return;
+    }
+
+    if (!hotelLocation) {
+      alert('Hotel location cannot be empty!');
+      return;
+    }
+
+    if (!hotelDescription) {
+      alert('Hotel description cannot be empty!');
+      return;
+    }
+
+    let newData = {};
+
+    if (hotelName !== originalHotelName) {
+      newData = { ...newData, name: hotelName };
+    }
+
+    if (hotelLocation !== originalHotelLocation) {
+      newData = { ...newData, location: hotelLocation };
+    }
+
+    if (hotelDescription !== originalhotelDescription) {
+      newData = { ...newData, description: hotelDescription };
+    }
+
+    if (Object.keys(newData).length === 0) {
+      alert('No changes were made!');
+      return;
+    }
+
+    editHotel({
+      hotelId: id,
+      newData,
+      onSuccess,
+      onFailure,
+    });
+  };
 
   return (
     <div className={styles.container}>
@@ -142,7 +198,7 @@ export default function HotelPage({ id }: { id: string }) {
                 onChange={(e) => setHotelDescription(e.target.value)}
               />
             </label>
-            <button onClick={handleUpdateHotel}>Update Hotel</button>
+            <button onClick={onSave}>Update Hotel</button>
 
             <table className={styles.table}>
               <thead>
@@ -232,6 +288,7 @@ export default function HotelPage({ id }: { id: string }) {
     </div>
   );
 }
+
 
 export async function getServerSideProps(context: any) {
   const { id } = context.query;

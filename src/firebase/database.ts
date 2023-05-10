@@ -90,6 +90,22 @@ export const addHotel = ({
     .catch(onFailure);
 };
 
+export const editHotel = ({
+  hotelId,
+  newData,
+  onSuccess,
+  onFailure,
+}: {
+  hotelId: string;
+  newData: Partial<Hotel>;
+  onSuccess: () => void;
+  onFailure: (error: any) => void;
+}) => {
+  updateDoc(doc(firebaseDb, 'hotels', hotelId), newData)
+    .then(onSuccess)
+    .catch(onFailure);
+};
+
 export const getHotel = async (id: string) => {
   const docRef = doc(firebaseDb, 'hotels', id);
   const docSnap = await getDoc(docRef);
