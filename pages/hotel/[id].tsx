@@ -172,38 +172,37 @@ export default function HotelPage({ id }: { id: string }) {
 
           <main className={styles.main}>
             <h1 className={styles.title}>
-              Your Hotel
-              <br />
-              <input
+              {'Your Hotel'}
+            </h1>
+            <input
                 type="text"
+                className={styles.input}
                 defaultValue={hotelName}
                 onChange={(e) => setHotelName(e.target.value)}
               />
-            </h1>
-            <label className={styles.description}>
-              Location:
-              <br />
+            <h2>
+              {'Location:'}
+            </h2>
               <input
                 type="text"
+                className={styles.input}
                 defaultValue={hotelLocation}
                 onChange={(e) => setHotelLocation(e.target.value)}
               />
-            </label>
-            <label className={styles.description}>
+            <h2>
               Description:
-              <br />
+            </h2>
               <input
                 type="text"
+                className={styles.input}
                 defaultValue={hotelDescription}
                 onChange={(e) => setHotelDescription(e.target.value)}
               />
-            </label>
-            <button onClick={onSave}>Update Hotel</button>
+            <button className={styles.card} onClick={onSave}>Update Hotel</button>
 
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Name</th>
                   <th>Number Of Beds</th>
                   <th>Price</th>
@@ -215,18 +214,17 @@ export default function HotelPage({ id }: { id: string }) {
               <tbody>
                 {roomIds.map((roomId, index) => (
                   <tr key={roomId}>
-                    <td className={styles.td}>{roomId}</td>
                     <td className={styles.td}>{roomNames[index]}</td>
                     <td className={styles.td}>{roomnoBeds[index]}</td>
                     <td className={styles.td}>{roomprice[index]}</td>
                     <td className={styles.td}>{roomBenefits[index]}</td>
                     <td className={styles.td}>
-                      <button onClick={() => handleModifyRoom(roomId)}>
+                      <button className={styles.card} onClick={() => handleModifyRoom(roomId)}>
                         Modify
                       </button>
                     </td>
                     <td className={styles.td}>
-                      <button onClick={() => handleDeleteRoom(roomId)}>
+                      <button className={styles.card} onClick={() => handleDeleteRoom(roomId)}>
                         Delete
                       </button>
                     </td>
@@ -234,7 +232,7 @@ export default function HotelPage({ id }: { id: string }) {
                 ))}
               </tbody>
             </table>
-            <button onClick={handleAddRoom}>Add room</button>
+            <button className={styles.card} onClick={handleAddRoom}>Add room</button>
           </main>
         </>
       ) : (

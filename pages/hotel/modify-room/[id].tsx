@@ -10,11 +10,8 @@ import styles from '../../../styles/Home.module.css';
 
 export default function ModifyRoom({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
-
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
   const roomDetails = useRef<Room>();
-
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
 
   useEffect(() => {
@@ -26,7 +23,6 @@ export default function ModifyRoom({ id }: { id: string }) {
     getRoom(id)
       .then((data) => {
         roomDetails.current = data;
-
         getHotel(data.hotelId)
           .then((hotelData) => {
             setHotelOwnerId(hotelData?.ownerId);
@@ -41,6 +37,10 @@ export default function ModifyRoom({ id }: { id: string }) {
       })
       .finally(() => setIsLoading(false));
   }, [id, state.isUserLoggedIn]);
+
+  if (!state.user?.isOwner || !(state.user?.id === hotelOwnerId)) {
+    router.back();
+  }
 
   return (
     <div className={styles.container}>

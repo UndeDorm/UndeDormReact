@@ -1,5 +1,4 @@
 import { collection, doc, getDoc } from 'firebase/firestore';
-import Head from 'next/head';
 import router from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { addRoom } from '../../../src/firebase/database';
@@ -11,13 +10,12 @@ import styles from '../../../styles/Home.module.css';
 export default function AddRoomPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
   const [hotelOwnerId, setHotelOwnerId] = useState<string>();
-  const [hotelId, setHotelId] = useState<string>();
   const roomName = useRef<string>('');
   const myCollection = collection(firebaseDb, 'rooms');
   const myDocRef = doc(myCollection);
   const noBeds = useRef<number>();
   const price = useRef<number>();
-  const benefits = useRef<string[]>(['']);
+  const benefits = useRef<string>();
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -32,7 +30,6 @@ export default function AddRoomPage({ id }: { id: string }) {
 
       if (hotelSnapshot.exists()) {
         const hotelData = hotelSnapshot.data();
-        setHotelId(hotelData?.id);
         setHotelOwnerId(hotelData?.ownerId);
         if (hotelOwnerId != null && hotelOwnerId !== state.user?.id) {
           console.log('You are not the owner of this hotel!');
@@ -51,7 +48,7 @@ export default function AddRoomPage({ id }: { id: string }) {
     const room: Room = {
       id: myDocRef.id,
       name: roomName.current,
-      benefits: benefits.current,
+      benefits: benefits.current ?? '',
       pricePerNight: price.current ?? 0,
       beds: noBeds.current ?? 0,
       hotelId: id,
@@ -59,9 +56,12 @@ export default function AddRoomPage({ id }: { id: string }) {
 
     const onSuccess = () => {
       console.log('Room added successfully');
-      router.push('/');
+      router.back();
     };
-    const onFailure = (error: any) => {};
+    const onFailure = (error: any) => {
+      console.log(error);
+      alert('Error adding room!');
+    };
 
     addRoom({ room, onSuccess, onFailure });
   };
@@ -87,11 +87,9 @@ export default function AddRoomPage({ id }: { id: string }) {
       <input
         placeholder="Benefits"
         className={styles.input}
-        onChange={(e) =>
-          (benefits.current = [...benefits.current, e.target.value])
-        }
+        onChange={(e) => (benefits.current = e.target.value)}
       />
-      <button onClick={addRoomToDatabase} className={styles.button}>
+      <button className={styles.card} onClick={addRoomToDatabase}>
         Add Room
       </button>
     </main>
