@@ -87,7 +87,7 @@ export default function HotelPage({ id }: { id: string }) {
   };
 
   const handleModifyRoom = async (roomId: string) => {
-    router.push(`/hotel/modifyRoom/${roomId}`);
+    router.push(`/hotel/modify-room/${roomId}`);
   };
 
   async function handleUpdateHotel() {
@@ -97,11 +97,11 @@ export default function HotelPage({ id }: { id: string }) {
       location: hotelLocation,
       description: hotelDescription,
     });
-    router.push('/ownerHotels');
+    router.push('/owner-hotels');
   }
 
   async function handleAddRoom() {
-    router.push(`/hotel/addRoom/${id}`);
+    router.push(`/hotel/add-room/${id}`);
   }
 
   return (

@@ -115,6 +115,19 @@ export const getHotels = async () => {
   }
 };
 
+export const getOwnedHotels = async (ownerId: string) => {
+  const hotelsRef = collection(firebaseDb, 'hotels');
+  const hotelsSnap = await getDocs(hotelsRef);
+
+  if (hotelsSnap) {
+    return hotelsSnap.docs
+      .map((doc) => doc.data())
+      .filter((data) => data.ownerId === ownerId) as Hotel[];
+  } else {
+    return null;
+  }
+};
+
 export const addRoom = ({
   room,
   onSuccess,
