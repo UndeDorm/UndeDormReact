@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import styles from '../styles/Hotels.module.css';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import { useRouter } from 'next/router';
 import { firebaseDb, storage, storageRef } from '../src/firebase/firebase';
@@ -11,11 +11,9 @@ export default function HotelList() {
   const router = useRouter();
   const hotelsRef = collection(firebaseDb, 'hotels');
 
-  const [hotelImages, setHotelImages] = useState<string[]>([]);
-  const [hotelNames, setHotelNames] = useState<string[]>([]);
-  const [hotelLocations, setHotelLocations] = useState<string[]>([]);
-  const [hotelDescriptions, setHotelDescriptions] = useState<string[]>([]);
-  const [hotelIds, setHotelIds] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const hotelsData = useRef<any[]>([]);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -23,36 +21,48 @@ export default function HotelList() {
       router.push('/');
     } else {
       console.log(hotelsRef);
-      const getHotels = async () => {
-        const hotelsSnapshot = await getDocs(hotelsRef);
-        const hotelsData = hotelsSnapshot.docs
-          .map((doc) => doc.data())
-          .filter((data) => data.name !== undefined && data.name !== null);
+      getDocs(hotelsRef)
+        .then((hotelsSnapshot) => {
+          const data = hotelsSnapshot.docs
+            .map((doc) => doc.data())
+            .filter((data) => !!data.name);
 
-        const hotelImages = hotelsData.map((data) => data.images);
-        const hotelNames = hotelsData.map((data) => data.name);
-        const hotelLocations = hotelsData.map((data) => data.location);
-        const hotelDescriptions = hotelsData.map((data) => data.description);
-        const hotelIds = hotelsData.map((data) => data.id);
-
-        // Set the state with the hotel names and locations
-        setHotelImages(hotelImages);
-        setHotelNames(hotelNames);
-        setHotelLocations(hotelLocations);
-        setHotelDescriptions(hotelDescriptions);
-        setHotelIds(hotelIds);
-      };
-      getHotels();
+          console.log(hotelsData);
+          hotelsData.current = data;
+        })
+        .catch((error) => {
+          console.error('Error getting hotels:', error);
+        })
+        .finally(() => setIsLoading(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hotelsRef, router, state]);
 
   const handleView = async (hotelId: string) => {
     try {
       router.push('/hotel/' + hotelId);
     } catch (error) {
-      console.error('Error accesing hotel:', error);
+      console.error('Error accessing hotel:', error);
     }
+  };
+
+  const renderHotels = () => {
+    return (
+      <>
+        {hotelsData.current.map((hotel) => {
+          return (
+            <div
+              key={hotel.id}
+              className={styles.card}
+              onClick={() => handleView(hotel.id)}
+            >
+              <h3>{hotel.name}</h3>
+              <p>{hotel.description}</p>
+              <p>📍 {hotel.location}</p>
+            </div>
+          );
+        })}
+      </>
+    );
   };
 
   return (
@@ -64,33 +74,14 @@ export default function HotelList() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Cautare de hoteluri</h1>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Location</th>
-              <th>Description</th>
-              <th>View</th>
-            </tr>
-          </thead>
-          <tbody>
-            {hotelNames.map((name, index) => (
-              <tr key={name}>
-                <td>{hotelImages[index].at(0)}</td>
-                <td className={styles.td}>{name}</td>
-                <td className={styles.td}>{hotelLocations[index]}</td>
-                <td className={styles.td}>{hotelDescriptions[index]}</td>
-                <td className={styles.td}>
-                  <button onClick={() => handleView(hotelIds[index])}>
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          <h1 className={styles.title}>{'Lista hoteluri'}</h1>
+          {isLoading ? (
+            <h1 className={styles.title}>{'Loading...'}</h1>
+          ) : (
+            renderHotels()
+          )}
+        </>
       </main>
     </div>
   );
