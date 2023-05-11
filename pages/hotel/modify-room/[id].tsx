@@ -1,29 +1,23 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-} from 'firebase/firestore';
 import Head from 'next/head';
-import router, { useRouter } from 'next/router';
+import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import {
-  addRoom,
   editRoom,
   getHotel,
   getRoom,
 } from '../../../src/firebase/database';
-import { firebaseDb } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
-import { get } from 'http';
 
 export default function ModifyRoom({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
   const router = useRouter();
   const roomData = useRef<Room>();
+  const roomNameRef = useRef<string>(roomData.current?.name ?? '');
+  const roomnoBedsRef = useRef<number>(roomData.current?.beds ?? 0);
+  const roompriceRef = useRef<number>(roomData.current?.pricePerNight ?? 0);
+  const roomBenefitsRef = useRef<string>(roomData.current?.benefits ?? '');
   const roomOriginalData = useRef<Room>();
   const hotelData = useRef<Hotel>();
   const hotelOwnerId = useRef<string>();
@@ -39,6 +33,10 @@ export default function ModifyRoom({ id }: { id: string }) {
         .then((data) => {
           roomData.current = data;
           roomOriginalData.current = data;
+          roomNameRef.current = roomData.current.name;
+          roomnoBedsRef.current = roomData.current.beds;
+          roompriceRef.current = roomData.current.pricePerNight;
+          roomBenefitsRef.current = roomData.current.benefits;
         })
         .catch((error) => {
           console.log('Error getting room:', error);
@@ -61,51 +59,52 @@ export default function ModifyRoom({ id }: { id: string }) {
   const onSave = () => {
     const onSuccess = () => {
       alert('Room successfully modified!');
+      router.back();
     };
 
     const onFailure = (error: any) => {
       alert('Error modifying room: ' + error);
     };
 
-    if (!roomData.current?.name) {
+    if (!roomNameRef.current) {
       alert('Room name cannot be empty!');
       return;
     }
 
-    if (!roomData.current?.beds) {
+    if (!roomnoBedsRef.current) {
       alert('Room number of beds cannot be empty!');
       return;
     }
 
-    if (!roomData.current?.pricePerNight) {
+    if (!roompriceRef.current) {
       alert('Room price cannot be empty!');
       return;
     }
 
-    if (!roomData.current?.benefits) {
+    if (!roomBenefitsRef.current) {
       alert('Room benefits cannot be empty!');
       return;
     }
 
     let newData = {};
 
-    if (roomData.current?.name !== roomOriginalData.current?.name) {
-      newData = { ...newData, name: roomData.current?.name };
+    if (roomNameRef.current !== roomOriginalData.current?.name) {
+      newData = { ...newData, name: roomNameRef.current };
     }
 
-    if (roomData.current?.beds !== roomOriginalData.current?.beds) {
-      newData = { ...newData, beds: roomData.current?.beds };
+    if (roomnoBedsRef.current !== roomOriginalData.current?.beds) {
+      newData = { ...newData, beds: roomnoBedsRef.current };
     }
 
     if (
-      roomData.current?.pricePerNight !==
+      roompriceRef.current !==
       roomOriginalData.current?.pricePerNight
     ) {
-      newData = { ...newData, pricePerNight: roomData.current?.pricePerNight };
+      newData = { ...newData, pricePerNight: roompriceRef.current };
     }
 
-    if (roomData.current?.benefits !== roomOriginalData.current?.benefits) {
-      newData = { ...newData, benefits: roomData.current?.benefits };
+    if (roomBenefitsRef.current !== roomOriginalData.current?.benefits) {
+      newData = { ...newData, benefits: roomBenefitsRef.current };
     }
 
     if (Object.keys(newData).length === 0) {
@@ -120,26 +119,26 @@ export default function ModifyRoom({ id }: { id: string }) {
         <h1>{'Room name'}</h1>
         <input
           type="text"
-          value={roomOriginalData.current?.name}
-          onChange={(e) => (roomData.current?.name = e.target.value)}
+          defaultValue={roomOriginalData.current?.name}
+          onChange={(e) => (roomNameRef.current = e.target.value)}
         />
         <h1>{'Room number of beds'}</h1>
         <input
           type="number"
-          value={roomOriginalData.current?.beds}
-          onChange={(e) => (roomData.current?.beds = e.target.value)}
+          defaultValue={roomOriginalData.current?.beds}
+          onChange={(e) => (roomnoBedsRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room price'}</h1>
         <input
           type="number"
-          value={roomOriginalData.current?.pricePerNight}
-          onChange={(e) => (roomData.current?.pricePerNight = e.target.value)}
+          defaultValue={roomOriginalData.current?.pricePerNight}
+          onChange={(e) => (roompriceRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room benefits'}</h1>
         <input
           type="text"
-          value={roomOriginalData.current?.benefits}
-          onChange={(e) => (roomData.current?.benefits = e.target.value)}
+          defaultValue={roomOriginalData.current?.benefits}
+          onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
         <button onClick={onSave}>Save</button>
       </main>
