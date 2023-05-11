@@ -98,13 +98,13 @@ export default function HotelPage({ id }: { id: string }) {
     router.push(`/hotel/modify-room/${roomId}`);
   };
 
-  async function handleAddRoom() {
+  const handleAddRoom = async () => {
     router.push(`/hotel/add-room/${id}`);
-  }
+  };
 
-  async function handleViewRoom(roomId: string) {
+  const handleViewRoom = async (roomId: string) => {
     router.push(`/hotel/view-room/${roomId}`);
-  }
+  };
 
   const onSave = () => {
     const onSuccess = async () => {
