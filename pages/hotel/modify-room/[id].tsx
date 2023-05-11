@@ -1,11 +1,7 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
-import {
-  editRoom,
-  getHotel,
-  getRoom,
-} from '../../../src/firebase/database';
+import { editRoom, getHotel, getRoom } from '../../../src/firebase/database';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
@@ -15,8 +11,8 @@ export default function ModifyRoom({ id }: { id: string }) {
   const router = useRouter();
   const roomData = useRef<Room>();
   const roomNameRef = useRef<string>(roomData.current?.name ?? '');
-  const roomnoBedsRef = useRef<number>(roomData.current?.beds ?? 0);
-  const roompriceRef = useRef<number>(roomData.current?.pricePerNight ?? 0);
+  const roomNoBedsRef = useRef<number>(roomData.current?.beds ?? 0);
+  const roomPriceRef = useRef<number>(roomData.current?.pricePerNight ?? 0);
   const roomBenefitsRef = useRef<string>(roomData.current?.benefits ?? '');
   const roomOriginalData = useRef<Room>();
   const hotelData = useRef<Hotel>();
@@ -34,25 +30,30 @@ export default function ModifyRoom({ id }: { id: string }) {
           roomData.current = data;
           roomOriginalData.current = data;
           roomNameRef.current = roomData.current.name;
-          roomnoBedsRef.current = roomData.current.beds;
-          roompriceRef.current = roomData.current.pricePerNight;
+          roomNoBedsRef.current = roomData.current.beds;
+          roomPriceRef.current = roomData.current.pricePerNight;
           roomBenefitsRef.current = roomData.current.benefits;
+
+          if (roomData.current) {
+            getHotel(roomData.current.hotelId)
+              .then((data) => {
+                hotelData.current = data;
+                hotelOwnerId.current = data.ownerId ?? '';
+              })
+              .catch((error) => {
+                console.log('Error getting hotel:', error);
+              })
+              .finally(() => {
+                setIsLoading(false);
+              });
+          } else {
+            setIsLoading(false);
+          }
         })
         .catch((error) => {
           console.log('Error getting room:', error);
+          setIsLoading(false);
         });
-
-      if (roomData.current) {
-        getHotel(roomData.current.hotelId)
-          .then((data) => {
-            hotelData.current = data;
-            hotelOwnerId.current = data.ownerId ?? '';
-          })
-          .catch((error) => {
-            console.log('Error getting hotel:', error);
-          })
-          .finally(() => setIsLoading(false));
-      }
     }
   }, [id, router, state]);
 
@@ -71,12 +72,12 @@ export default function ModifyRoom({ id }: { id: string }) {
       return;
     }
 
-    if (!roomnoBedsRef.current) {
+    if (!roomNoBedsRef.current) {
       alert('Room number of beds cannot be empty!');
       return;
     }
 
-    if (!roompriceRef.current) {
+    if (!roomPriceRef.current) {
       alert('Room price cannot be empty!');
       return;
     }
@@ -92,15 +93,12 @@ export default function ModifyRoom({ id }: { id: string }) {
       newData = { ...newData, name: roomNameRef.current };
     }
 
-    if (roomnoBedsRef.current !== roomOriginalData.current?.beds) {
-      newData = { ...newData, beds: roomnoBedsRef.current };
+    if (roomNoBedsRef.current !== roomOriginalData.current?.beds) {
+      newData = { ...newData, beds: roomNoBedsRef.current };
     }
 
-    if (
-      roompriceRef.current !==
-      roomOriginalData.current?.pricePerNight
-    ) {
-      newData = { ...newData, pricePerNight: roompriceRef.current };
+    if (roomPriceRef.current !== roomOriginalData.current?.pricePerNight) {
+      newData = { ...newData, pricePerNight: roomPriceRef.current };
     }
 
     if (roomBenefitsRef.current !== roomOriginalData.current?.benefits) {
@@ -113,6 +111,7 @@ export default function ModifyRoom({ id }: { id: string }) {
     }
     editRoom({ roomId: id, newData, onSuccess, onFailure });
   };
+
   const renderPage = () => {
     return (
       <main className={styles.main}>
@@ -126,13 +125,13 @@ export default function ModifyRoom({ id }: { id: string }) {
         <input
           type="number"
           defaultValue={roomOriginalData.current?.beds}
-          onChange={(e) => (roomnoBedsRef.current = parseInt(e.target.value))}
+          onChange={(e) => (roomNoBedsRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room price'}</h1>
         <input
           type="number"
           defaultValue={roomOriginalData.current?.pricePerNight}
-          onChange={(e) => (roompriceRef.current = parseInt(e.target.value))}
+          onChange={(e) => (roomPriceRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room benefits'}</h1>
         <input
@@ -160,7 +159,6 @@ export default function ModifyRoom({ id }: { id: string }) {
             <h1 className={styles.title}>{'Loading...'}</h1>
           ) : (
             <>
-              {' '}
               {state.user?.isOwner &&
               state.user.id === hotelData.current?.ownerId
                 ? renderPage()
