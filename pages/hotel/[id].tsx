@@ -8,11 +8,12 @@ import {
 } from 'firebase/firestore';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useContext, useEffect, useState } from 'react';
-import { editHotel } from '../../src/firebase/database';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { editHotel, getHotel, getRooms } from '../../src/firebase/database';
 import { firebaseDb } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
+import { Hotel, Room } from '../../src/utils/types';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -30,59 +31,52 @@ export default function HotelPage({ id }: { id: string }) {
   const [originalhotelDescription, setOriginalHotelDescription] =
     useState<string>();
   const router = useRouter();
+  const hotelData = useRef<Hotel>();
+  const originalHotelData = useRef<Hotel>();
+  const roomsData = useRef<Room[]>([]);
+  const hotelNameRef = useRef<string>(hotelData.current?.name ?? '');
+  const hotelLocationRef = useRef<string>(hotelData.current?.location ?? '');
+  const hotelDescriptionRef = useRef<string>(
+    hotelData.current?.description ?? ''
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
       router.push('/');
       return;
+    } else {
+      getHotel(id)
+        .then((data) => {
+          hotelData.current = data;
+          originalHotelData.current = data;
+          hotelDescriptionRef.current = hotelData.current.description;
+          hotelLocationRef.current = hotelData.current.location;
+          hotelNameRef.current = hotelData.current.name;
+          if (hotelData.current) {
+            getRooms()
+              .then((data) => {
+                roomsData.current =
+                  data?.filter((room) => room.hotelId === id) ?? [];
+
+                console.log('TEST', roomsData.current);
+              })
+              .catch((error) => {
+                console.error('Error getting rooms', error);
+              })
+              .finally(() => setIsLoading(false));
+          } else {
+            setIsLoading(false);
+          }
+        })
+        .catch((error) => {
+          console.error('Error getting hotel', error);
+          setIsLoading(false);
+        })
+        .finally(() => setIsLoading(false));
     }
-
-    async function fetchHotel() {
-      const hotelRef = doc(firebaseDb, 'hotels', id);
-      const hotelSnapshot = await getDoc(hotelRef);
-
-      if (hotelSnapshot.exists()) {
-        const hotelData = hotelSnapshot.data();
-        setHotelName(hotelData?.name);
-        setHotelLocation(hotelData?.location);
-        setHotelDescription(hotelData?.description);
-        setHotelOwnerId(hotelData?.ownerId);
-        setOriginalHotelName(hotelData?.name);
-        setOriginalHotelLocation(hotelData?.location);
-        setOriginalHotelDescription(hotelData?.description);
-      } else {
-        console.log('Hotel not found!');
-        router.push('/');
-      }
-    }
-
-    const fetchRooms = async () => {
-      const roomsRef = collection(firebaseDb, 'rooms');
-      const roomsSnapshot = await getDocs(roomsRef);
-      const roomsData = roomsSnapshot.docs
-        .map((doc) => doc.data())
-        .filter(
-          (data) =>
-            data.id !== undefined && data.id !== null && data.hotelId === id
-        );
-
-      const roomIds = roomsData.map((data) => data.id);
-      const roomnoBeds = roomsData.map((data) => data.beds);
-      const roomprice = roomsData.map((data) => data.pricePerNight);
-      const roomBenefits = roomsData.map((data) => data.benefits);
-      const roomNames = roomsData.map((data) => data.name);
-
-      setRoomIds(roomIds);
-      setRoomnoBeds(roomnoBeds);
-      setRoomprice(roomprice);
-      setRoomBenefits(roomBenefits);
-      setRoomNames(roomNames);
-    };
-
-    fetchHotel();
-    fetchRooms();
-  }, [id, router, state]);
+  }, [id, router, state.isUserLoggedIn]);
 
   const handleDeleteRoom = async (roomId: string) => {
     try {
@@ -123,33 +117,35 @@ export default function HotelPage({ id }: { id: string }) {
       alert('Error updating hotel!');
     };
 
-    if (!hotelName) {
+    if (!hotelNameRef.current) {
       alert('Hotel name cannot be empty!');
       return;
     }
 
-    if (!hotelLocation) {
+    if (!hotelLocationRef.current) {
       alert('Hotel location cannot be empty!');
       return;
     }
 
-    if (!hotelDescription) {
+    if (!hotelDescriptionRef.current) {
       alert('Hotel description cannot be empty!');
       return;
     }
 
     let newData = {};
 
-    if (hotelName !== originalHotelName) {
-      newData = { ...newData, name: hotelName };
+    if (hotelNameRef.current !== originalHotelData.current?.name) {
+      newData = { ...newData, name: hotelNameRef.current };
     }
 
-    if (hotelLocation !== originalHotelLocation) {
-      newData = { ...newData, location: hotelLocation };
+    if (hotelLocationRef.current !== originalHotelData.current?.location) {
+      newData = { ...newData, location: hotelLocationRef.current };
     }
 
-    if (hotelDescription !== originalhotelDescription) {
-      newData = { ...newData, description: hotelDescription };
+    if (
+      hotelDescriptionRef.current !== originalHotelData.current?.description
+    ) {
+      newData = { ...newData, description: hotelDescriptionRef.current };
     }
 
     if (Object.keys(newData).length === 0) {
@@ -165,138 +161,161 @@ export default function HotelPage({ id }: { id: string }) {
     });
   };
 
+  const renderOwner = () => {
+    return (
+      <>
+        <Head>
+          <title>Unde Dorm</title>
+          <meta name="description" content="Generated by create next app" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+
+        <main className={styles.main}>
+          <h1 className={styles.title}>{'Your Hotel'}</h1>
+          <input
+            type="text"
+            className={styles.input}
+            defaultValue={originalHotelData.current?.name}
+            onChange={(e) => (hotelNameRef.current = e.target.value)}
+          />
+          <h2>{'Location:'}</h2>
+          <input
+            type="text"
+            className={styles.input}
+            defaultValue={hotelLocation}
+            onChange={(e) => (hotelLocationRef.current = e.target.value)}
+          />
+          <h2>Description:</h2>
+          <input
+            type="text"
+            className={styles.input}
+            defaultValue={hotelDescription}
+            onChange={(e) => (hotelDescriptionRef.current = e.target.value)}
+          />
+          <button className={styles.card} onClick={onSave}>
+            Update Hotel
+          </button>
+
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Number Of Beds</th>
+                <th>Price</th>
+                <th>Benefits</th>
+                <th>Modify</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roomsData.current.map((room) => (
+                <tr key={room.id}>
+                  <td className={styles.td}>{room.name}</td>
+                  <td className={styles.td}>{room.beds}</td>
+                  <td className={styles.td}>{room.pricePerNight}</td>
+                  <td className={styles.td}>{room.benefits}</td>
+                  <td className={styles.td}>
+                    <button
+                      className={styles.card}
+                      onClick={() => handleModifyRoom(room.id)}
+                    >
+                      Modify
+                    </button>
+                  </td>
+                  <td className={styles.td}>
+                    <button
+                      className={styles.card}
+                      onClick={() => handleDeleteRoom(room.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button className={styles.card} onClick={handleAddRoom}>
+            Add room
+          </button>
+        </main>
+      </>
+    );
+  };
+
+  const renderUser = () => {
+    return (
+      <>
+        <Head>
+          <title>Unde Dorm</title>
+          <meta name="description" content="Generated by create next app" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+
+        <main className={styles.main}>
+          <h1 className={styles.title}>Hotel {hotelData.current?.name}</h1>
+          <p className={styles.description}>
+            Location: {hotelData.current?.location}
+          </p>
+          <p className={styles.description}>
+            Description: {hotelData.current?.description}
+          </p>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Number Of Beds</th>
+                <th>Price</th>
+                <th>Benefits</th>
+                <th>View</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roomsData.current.map((room) => (
+                <tr key={room.id}>
+                  <td className={styles.td}>{room.name}</td>
+                  <td className={styles.td}>{room.beds}</td>
+                  <td className={styles.td}>{room.pricePerNight}</td>
+                  <td className={styles.td}>{room.benefits}</td>
+                  <td className={styles.td}>
+                    <button
+                      className={styles.card}
+                      onClick={() => handleViewRoom(room.id)}
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
+      </>
+    );
+  };
+
   return (
     <div className={styles.container}>
-      {state.user?.isOwner && state.user?.id === hotelOwnerId ? (
+      <Head>
+        <title>Unde Dorm</title>
+        <meta name="description" content="Generated by create next app" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main className={styles.main}>
         <>
-          <Head>
-            <title>Unde Dorm</title>
-            <meta name="description" content="Generated by create next app" />
-            <link rel="icon" href="/favicon.ico" />
-          </Head>
-
-          <main className={styles.main}>
-            <h1 className={styles.title}>{'Your Hotel'}</h1>
-            <input
-              type="text"
-              className={styles.input}
-              defaultValue={hotelName}
-              onChange={(e) => setHotelName(e.target.value)}
-            />
-            <h2>{'Location:'}</h2>
-            <input
-              type="text"
-              className={styles.input}
-              defaultValue={hotelLocation}
-              onChange={(e) => setHotelLocation(e.target.value)}
-            />
-            <h2>Description:</h2>
-            <input
-              type="text"
-              className={styles.input}
-              defaultValue={hotelDescription}
-              onChange={(e) => setHotelDescription(e.target.value)}
-            />
-            <button className={styles.card} onClick={onSave}>
-              Update Hotel
-            </button>
-
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Number Of Beds</th>
-                  <th>Price</th>
-                  <th>Benefits</th>
-                  <th>Modify</th>
-                  <th>Delete</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roomIds.map((roomId, index) => (
-                  <tr key={roomId}>
-                    <td className={styles.td}>{roomNames[index]}</td>
-                    <td className={styles.td}>{roomnoBeds[index]}</td>
-                    <td className={styles.td}>{roomprice[index]}</td>
-                    <td className={styles.td}>{roomBenefits[index]}</td>
-                    <td className={styles.td}>
-                      <button
-                        className={styles.card}
-                        onClick={() => handleModifyRoom(roomId)}
-                      >
-                        Modify
-                      </button>
-                    </td>
-                    <td className={styles.td}>
-                      <button
-                        className={styles.card}
-                        onClick={() => handleDeleteRoom(roomId)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button className={styles.card} onClick={handleAddRoom}>
-              Add room
-            </button>
-          </main>
+          <h1 className={styles.title}>{'View Hotel'}</h1>
+          {isLoading ? (
+            <h1 className={styles.title}>{'Loading...'}</h1>
+          ) : (
+            <>
+              {state.user?.isOwner &&
+              state.user.id === hotelData.current?.ownerId
+                ? renderOwner()
+                : renderUser()}
+            </>
+          )}
         </>
-      ) : (
-        <>
-          <Head>
-            <title>Unde Dorm</title>
-            <meta name="description" content="Generated by create next app" />
-            <link rel="icon" href="/favicon.ico" />
-          </Head>
-
-          <main className={styles.main}>
-            <h1 className={styles.title}>Hotel {hotelName}</h1>
-            <p className={styles.description}>Location: {hotelLocation}</p>
-            <p className={styles.description}>
-              Description: {hotelDescription}
-            </p>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Number Of Beds</th>
-                  <th>Price</th>
-                  <th>Benefits</th>
-                  <th>View</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roomIds &&
-                  roomIds.map((roomId, index) => (
-                    <tr key={roomId}>
-                      <td className={styles.td}>{roomNames[index]}</td>
-                      <td className={styles.td}>
-                        {roomnoBeds && roomnoBeds[index]}
-                      </td>
-                      <td className={styles.td}>
-                        {roomprice && roomprice[index]}
-                      </td>
-                      <td className={styles.td}>
-                        {roomBenefits && roomBenefits[index]}
-                      </td>
-                      <td className={styles.td}>
-                        <button
-                          className={styles.card}
-                          onClick={() => handleViewRoom(roomId)}
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </main>
-        </>
-      )}
+      </main>
     </div>
   );
 }

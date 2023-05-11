@@ -131,6 +131,20 @@ export const getHotels = async () => {
   }
 };
 
+export const getRooms = async () => {
+  const roomsRef = collection(firebaseDb, 'rooms');
+
+  const roomsSnap = await getDocs(roomsRef);
+
+  if (roomsSnap) {
+    return roomsSnap.docs
+      .map((doc) => doc.data())
+      .filter((data) => !!data.name) as Room[];
+  } else {
+    return null;
+  }
+};
+
 export const getOwnedHotels = async (ownerId: string) => {
   const hotelsRef = collection(firebaseDb, 'hotels');
   const hotelsSnap = await getDocs(hotelsRef);
