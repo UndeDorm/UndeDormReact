@@ -18,90 +18,77 @@ import { firebaseDb } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
+import { error } from 'console';
 
 export default function ModifyRoom({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
-  const [roomName, setRoomName] = useState<string>();
-  const [roomnoBeds, setRoomnoBeds] = useState<number>();
-  const [roomprice, setRoomprice] = useState<number>();
-  const [roomBenefits, setRoomBenefits] = useState<string>();
+
   const [hotelId, setHotelId] = useState<string>();
-  const [hotelOwnerId, setHotelOwnerId] = useState<string>();
   const router = useRouter();
+  const roomData = useRef<Room>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
       router.push('/');
       return;
+    } else {
+      getRoom(id)
+        .then((data) => {
+          roomData.current = data;
+        })
+        .catch((error) => {
+          console.error('Error getting room', error);
+        })
+        .finally(() => setIsLoading(false));
     }
-
-    async function fetchRoom() {
-      const roomRef = doc(firebaseDb, 'rooms', id);
-      const roomSnapshot = await getDoc(roomRef);
-
-      if (roomSnapshot.exists()) {
-        const roomData = roomSnapshot.data();
-        setHotelId(roomData?.hotelId);
-        setRoomName(roomData?.name);
-        setRoomnoBeds(roomData?.beds);
-        setRoomprice(roomData?.pricePerNight);
-        setRoomBenefits(roomData?.benefits);
-      } else {
-        console.log('Room not found!');
-        router.push('/');
-      }
-    }
-    fetchRoom();
-
-    const fetchHotels = async () => {
-      const hotelsRef = collection(firebaseDb, 'hotels');
-      const hotelsSnapshot = await getDocs(hotelsRef);
-      const hotelsData = hotelsSnapshot.docs
-        .map((doc) => doc.data())
-        .filter(
-          (data) =>
-            data.id !== undefined && data.id !== null && data.id === hotelId
-        );
-
-      const hotelOwnerId = hotelsData.map((data) => data.ownerId)[0];
-
-      setHotelOwnerId(hotelOwnerId);
-    };
-
-    fetchHotels();
   }, [id, state, router, hotelId]);
+
+  const renderPage = () => {
+    return (
+      <main className={styles.main}>
+        {
+          <main className={styles.main}>
+            <h1>{'Room name'}</h1>
+            <h2>{roomData.current?.name}</h2>
+
+            <h2>
+              {'Room number of beds: '}
+              {roomData.current?.beds}
+            </h2>
+
+            <h2>
+              {'Price per night: '}
+              {roomData.current?.pricePerNight}
+            </h2>
+
+            <h2>
+              {'Room benefits: '}
+              {roomData.current?.benefits}
+            </h2>
+          </main>
+        }
+      </main>
+    );
+  };
 
   return (
     <div className={styles.container}>
       <Head>
         <title>Modify Room</title>
-        <meta name="description" content="Modify Room" />
+        <meta name="description" content="View Room" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
       <main className={styles.main}>
-        {
-          <main className={styles.main}>
-            <h1>{'Room name'}</h1>
-            <h2>{roomName}</h2>
-
-            <h2>
-              {'Room number of beds: '}
-              {roomnoBeds}
-            </h2>
-
-            <h2>
-              {'Price per night: '}
-              {roomprice}
-            </h2>
-
-            <h2>
-              {'Room benefits: '}
-              {roomBenefits}
-            </h2>
-          </main>
-        }
+        <>
+          <h1 className={styles.title}>{'Room'}</h1>
+          {isLoading ? (
+            <h1 className={styles.title}>{'Loading...'}</h1>
+          ) : (
+            renderPage()
+          )}
+        </>
       </main>
     </div>
   );
