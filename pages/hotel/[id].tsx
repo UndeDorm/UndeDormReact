@@ -17,19 +17,7 @@ import { Hotel, Room } from '../../src/utils/types';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
-  const [hotelName, setHotelName] = useState<string>();
-  const [hotelLocation, setHotelLocation] = useState<string>();
-  const [hotelDescription, setHotelDescription] = useState<string>();
-  const [hotelOwnerId, setHotelOwnerId] = useState<string>();
-  const [roomIds, setRoomIds] = useState<string[]>([]);
-  const [roomnoBeds, setRoomnoBeds] = useState<number[]>([]);
-  const [roomprice, setRoomprice] = useState<number[]>([]);
-  const [roomBenefits, setRoomBenefits] = useState<string[]>([]);
-  const [roomNames, setRoomNames] = useState<string[]>([]);
-  const [originalHotelName, setOriginalHotelName] = useState<string>();
-  const [originalHotelLocation, setOriginalHotelLocation] = useState<string>();
-  const [originalhotelDescription, setOriginalHotelDescription] =
-    useState<string>();
+
   const router = useRouter();
   const hotelData = useRef<Hotel>();
   const originalHotelData = useRef<Hotel>();
@@ -40,7 +28,6 @@ export default function HotelPage({ id }: { id: string }) {
     hotelData.current?.description ?? ''
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
   useEffect(() => {
     if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
@@ -73,8 +60,7 @@ export default function HotelPage({ id }: { id: string }) {
         .catch((error) => {
           console.error('Error getting hotel', error);
           setIsLoading(false);
-        })
-        .finally(() => setIsLoading(false));
+        });
     }
   }, [id, router, state.isUserLoggedIn]);
 
@@ -102,12 +88,6 @@ export default function HotelPage({ id }: { id: string }) {
 
   const onSave = () => {
     const onSuccess = async () => {
-      const hotelRef = doc(firebaseDb, 'hotels', id);
-      await updateDoc(hotelRef, {
-        name: hotelName,
-        location: hotelLocation,
-        description: hotelDescription,
-      });
       alert('Hotel updated successfully!');
       router.push('/owner-hotels');
     };
@@ -182,14 +162,14 @@ export default function HotelPage({ id }: { id: string }) {
           <input
             type="text"
             className={styles.input}
-            defaultValue={hotelLocation}
+            defaultValue={hotelLocationRef.current}
             onChange={(e) => (hotelLocationRef.current = e.target.value)}
           />
           <h2>Description:</h2>
           <input
             type="text"
             className={styles.input}
-            defaultValue={hotelDescription}
+            defaultValue={hotelDescriptionRef.current}
             onChange={(e) => (hotelDescriptionRef.current = e.target.value)}
           />
           <button className={styles.card} onClick={onSave}>
