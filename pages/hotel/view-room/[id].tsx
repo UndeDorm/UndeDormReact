@@ -82,49 +82,25 @@ export default function ModifyRoom({ id }: { id: string }) {
 
       <main className={styles.main}>
         {
-          <>
-            {state.user?.isOwner && state.user?.id === hotelOwnerId ? (
-              <main className={styles.main}>
-                <h1>{'Room name'}</h1>
-                <h2>{roomName}</h2>
+          <main className={styles.main}>
+            <h1>{'Room name'}</h1>
+            <h2>{roomName}</h2>
 
-                <h2>
-                  {'Room number of beds: '}
-                  {roomnoBeds}
-                </h2>
+            <h2>
+              {'Room number of beds: '}
+              {roomnoBeds}
+            </h2>
 
-                <h2>
-                  {'Price per night: '}
-                  {roomprice}
-                </h2>
+            <h2>
+              {'Price per night: '}
+              {roomprice}
+            </h2>
 
-                <h2>
-                  {'Room benefits: '}
-                  {roomBenefits}
-                </h2>
-              </main>
-            ) : (
-              <main className={styles.main}>
-                <h1>{'Room name'}</h1>
-                <h2>{roomName}</h2>
-
-                <h2>
-                  {'Room number of beds: '}
-                  {roomnoBeds}
-                </h2>
-
-                <h2>
-                  {'Price per night: '}
-                  {roomprice}
-                </h2>
-
-                <h2>
-                  {'Room benefits: '}
-                  {roomBenefits}
-                </h2>
-              </main>
-            )}
-          </>
+            <h2>
+              {'Room benefits: '}
+              {roomBenefits}
+            </h2>
+          </main>
         }
       </main>
     </div>
