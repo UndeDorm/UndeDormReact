@@ -98,8 +98,8 @@ export default function SignInPage() {
     }
 
     // verify that date of birth is at least 1 day old
-    if (dateOfBirth.current.getTime() > new Date().getTime()) {
-      alert('Please enter your date of birth.');
+    if (new Date().getTime() - dateOfBirth.current.getTime() < 504910816000) {
+      alert('You must be at least 16 years old to sign up.');
       return;
     }
 

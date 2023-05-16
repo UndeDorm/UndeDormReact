@@ -18,7 +18,8 @@ export interface Hotel {
 
 export interface Room {
   id: string;
-  benefits: string[];
+  name: string;
+  benefits: string;
   pricePerNight: number;
   beds: number;
   hotelId: string;

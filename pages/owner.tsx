@@ -21,6 +21,7 @@ export default function BecomeOwner() {
       .then(() => {
         console.log('You are now an owner!');
         dispatch({ type: 'become-owner' });
+        router.push('/');
       })
       .catch((error) => {
         alert('Something went wrong!');

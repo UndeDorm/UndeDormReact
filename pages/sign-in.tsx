@@ -56,6 +56,10 @@ export default function SignInPage() {
       });
   };
 
+  const forgotPassword = () => {
+    router.push('/forgot-password');
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -88,6 +92,10 @@ export default function SignInPage() {
 
         <button onClick={signInWithGoogle} className={styles.card}>
           <p>Log in with Google</p>
+        </button>
+
+        <button onClick={forgotPassword} className={styles.card}>
+          <p>Forgot Password</p>
         </button>
       </main>
     </div>

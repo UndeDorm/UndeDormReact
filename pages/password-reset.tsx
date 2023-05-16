@@ -73,7 +73,7 @@ export default function ResetPassword() {
     <div>
       <main className={styles.main}>
         {successMessage ? (
-          <div>
+          <>
             <h3 className={styles.title}>{'Your password has been reset!'}</h3>
             <button
               onClick={() => router.push('/sign-in')}
@@ -81,7 +81,7 @@ export default function ResetPassword() {
             >
               {'Sign In'}
             </button>
-          </div>
+          </>
         ) : (
           <div>
             <form onSubmit={handleSubmit} className={styles.form}>

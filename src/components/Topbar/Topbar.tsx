@@ -12,6 +12,7 @@ const Topbar = () => {
   const onSignOut = () => {
     auth.signOut().then(() => {
       dispatch({ type: 'logout' });
+      router.push('/');
     });
   };
 
@@ -42,6 +43,10 @@ const Topbar = () => {
     router.push('/requests');
   };
 
+  const onProperties = () => {
+    router.push('/owner-hotels');
+  };
+
   return (
     <div className={styles.topbar}>
       <Link href="/">
@@ -55,6 +60,9 @@ const Topbar = () => {
         )}
         {state.user?.isOwner && (
           <TopbarButton title={'Cereri'} onClick={onRequests} />
+        )}
+        {state.user?.isOwner && (
+          <TopbarButton title={'Proprietati'} onClick={onProperties} />
         )}
         {state.isUserLoggedIn ? (
           <TopbarButton title={'Profil'} onClick={onProfile} />

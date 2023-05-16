@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import router from 'next/router';
-import { useContext, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { editUser } from '../src/firebase/database';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import styles from '../styles/Home.module.css';
@@ -8,9 +8,15 @@ import styles from '../styles/Home.module.css';
 export default function Profile() {
   const { state, dispatch } = useContext(AuthContext);
 
+  useEffect(() => {
+    if (!state.isUserLoggedIn) {
+      console.log('You are not logged in!');
+      router.push('/');
+    }
+  }, [state]);
+
   const firstNameRef = useRef<string>(state.user?.firstName ?? '');
   const lastNameRef = useRef<string>(state.user?.lastName ?? '');
-  // const emailRef = useRef<string>('');
   const dateOfBirthRef = useRef<string>(
     state.user?.dateOfBirth?.toString() ?? ''
   );
@@ -83,6 +89,10 @@ export default function Profile() {
       });
     }
   };
+
+  if (!state.isUserLoggedIn) {
+    return;
+  }
 
   return (
     <div className={styles.container}>

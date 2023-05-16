@@ -4,6 +4,7 @@ import {
   sendPasswordResetEmail,
   confirmPasswordReset,
 } from 'firebase/auth';
+import { getStorage, ref } from 'firebase/storage';
 import { GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -37,3 +38,8 @@ export const confirmThePasswordReset = async (
 export const provider = new GoogleAuthProvider();
 
 export const firebaseDb = getFirestore(app);
+
+export const storage = getStorage(app);
+export const storageRef = ref(storage);
+export const hotelImagesRef = ref(storage, 'images/hotels');
+export const roomsImagesRef = ref(storage, 'images/rooms');

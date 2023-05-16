@@ -4,8 +4,8 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import { useRouter } from 'next/router';
 import { firebaseDb, storage, storageRef } from '../src/firebase/firebase';
-import { collection, getDocs } from 'firebase/firestore';
-import { getHotels } from '../src/firebase/database';
+import { collection, deleteDoc, doc, getDocs } from 'firebase/firestore';
+import { getOwnedHotels } from '../src/firebase/database';
 import { Hotel } from '../src/utils/types';
 
 export default function HotelList() {
@@ -20,8 +20,12 @@ export default function HotelList() {
     if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
       router.push('/');
-    } else {
-      getHotels()
+    } else if (!state.user?.isOwner) {
+      console.log('You are not an owner!');
+      router.push('/');
+      return;
+    } else if (state.isUserLoggedIn) {
+      getOwnedHotels(state.user?.id)
         .then((data) => {
           hotelsData.current = data ?? [];
         })
@@ -30,13 +34,31 @@ export default function HotelList() {
         })
         .finally(() => setIsLoading(false));
     }
-  }, [router, state]);
+  }, [state, router]);
 
-  const handleView = async (hotelId: string) => {
+  const handleDelete = async (hotelId: string) => {
+    try {
+      deleteDoc(doc(firebaseDb, 'hotels', hotelId))
+        .then(() => {
+          router.reload();
+          console.log('Hotel deleted successfully!');
+          hotelsData.current = hotelsData.current.filter(
+            (hotel) => hotel.id !== hotelId
+          );
+        })
+        .catch((error) => {
+          return Promise.reject(error);
+        });
+    } catch (error) {
+      console.error('Error deleting hotel:', error);
+    }
+  };
+
+  const handleModify = async (hotelId: string) => {
     try {
       router.push('/hotel/' + hotelId);
     } catch (error) {
-      console.error('Error accessing hotel:', error);
+      console.error('Error modifying hotel:', error);
     }
   };
 
@@ -48,11 +70,20 @@ export default function HotelList() {
             <div
               key={hotel.id}
               className={styles.card}
-              onClick={() => handleView(hotel.id)}
+              onClick={() => handleModify(hotel.id)}
             >
               <h3>{hotel.name}</h3>
               <p>{hotel.description}</p>
               <p>📍 {hotel.location}</p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(hotel.id);
+                }}
+                className={styles.deleteButton}
+              >
+                {'Delete'}
+              </button>
             </div>
           );
         })}
@@ -69,14 +100,12 @@ export default function HotelList() {
       </Head>
 
       <main className={styles.main}>
-        <>
-          <h1 className={styles.title}>{'Lista hoteluri'}</h1>
-          {isLoading ? (
-            <h1 className={styles.title}>{'Loading...'}</h1>
-          ) : (
-            renderHotels()
-          )}
-        </>
+        <h1 className={styles.title}>{'Hoteluri detinute'}</h1>
+        {isLoading ? (
+          <h1 className={styles.title}>{'Loading...'}</h1>
+        ) : (
+          renderHotels()
+        )}
       </main>
     </div>
   );
