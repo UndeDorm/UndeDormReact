@@ -6,17 +6,13 @@ import { firebaseDb } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
-import { error } from 'console';
 
 export default function AddRoomPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
   const roomName = useRef<string>('');
-  const myCollection = collection(firebaseDb, 'rooms');
-  const myDocRef = doc(myCollection);
   const noBeds = useRef<number>();
   const price = useRef<number>();
   const benefits = useRef<string>();
-
   const hotelOwnerId = useRef<string>();
   const hotelData = useRef<Hotel>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -40,6 +36,8 @@ export default function AddRoomPage({ id }: { id: string }) {
   }, [id, state.isUserLoggedIn]);
 
   const addRoomToDatabase = () => {
+    const myCollection = collection(firebaseDb, 'rooms');
+    const myDocRef = doc(myCollection);
     const room: Room = {
       id: myDocRef.id,
       name: roomName.current,

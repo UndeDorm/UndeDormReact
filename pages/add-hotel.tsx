@@ -14,8 +14,6 @@ export default function AddHotelPage() {
   const location = useRef<string>('');
   const description = useRef<string>('');
   const images = useRef<string[]>(['']);
-  const myCollection = collection(firebaseDb, 'hotels');
-  const myDocRef = doc(myCollection);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -32,6 +30,8 @@ export default function AddHotelPage() {
   }, [state]);
 
   const addHotelToDatabase = () => {
+    const myCollection = collection(firebaseDb, 'hotels');
+    const myDocRef = doc(myCollection);
     const hotel: Hotel = {
       id: myDocRef.id,
       name: name.current,
