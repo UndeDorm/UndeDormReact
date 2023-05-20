@@ -3,11 +3,13 @@ import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import styles from '../styles/Home.module.css';
-import { ReservationRequest } from '../src/utils/types';
+import { Hotel, ReservationRequest, Room } from '../src/utils/types';
 import {
   editReservationRequest,
+  getHotels,
   getReservationRequestsByOwner,
   getReservationRequestsByUser,
+  getRooms,
 } from '../src/firebase/database';
 import { stat } from 'fs';
 import { request } from 'http';
@@ -20,6 +22,8 @@ export default function Profile() {
 
   const sentRequestsData = useRef<ReservationRequest[]>([]);
   const receivedRequestsData = useRef<ReservationRequest[]>([]);
+  const roomsData = useRef<Room[]>([]);
+  const hotelsData = useRef<Hotel[]>([]);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -42,11 +46,32 @@ export default function Profile() {
           sentRequestsData.current =
             data?.filter((request) => request.requestStatus === 'pending') ??
             [];
+          if (sentRequestsData.current) {
+            getRooms()
+              .then((data) => {
+                roomsData.current = data ?? [];
+              })
+              .catch((error) => {
+                console.error('Error getting rooms:', error);
+              })
+              .finally(() => setIsLoading(false));
+
+            getHotels()
+              .then((data) => {
+                hotelsData.current = data ?? [];
+              })
+              .catch((error) => {
+                console.error('Error getting hotels:', error);
+              })
+              .finally(() => setIsLoading(false));
+          } else {
+            setIsLoading(false);
+          }
         })
         .catch((error) => {
           console.error('Error getting reservation requests:', error);
-        })
-        .finally(() => setIsLoading(false));
+          setIsLoading(false);
+        });
     }
   }, [router, state]);
 
@@ -61,13 +86,37 @@ export default function Profile() {
         {sentRequestsData.current.map((request) => {
           return (
             <div key={request.id} className={styles.card}>
-              <h3>{request.id}</h3>
+              <h3>
+                {
+                  hotelsData.current.find(
+                    (hotel) =>
+                      hotel.id ===
+                      roomsData.current.find(
+                        (room) => room.id === request.roomId
+                      )?.hotelId
+                  )?.name
+                }
+                {': '}
+                {
+                  roomsData.current.find((room) => room.id === request.roomId)
+                    ?.name
+                }
+              </h3>
               <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
               <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
+              <p>
+                📍Location:{' '}
+                {
+                  hotelsData.current.find(
+                    (hotel) =>
+                      hotel.id ===
+                      roomsData.current.find(
+                        (room) => room.id === request.roomId
+                      )?.hotelId
+                  )?.location
+                }
+              </p>
               <p>Status: {request.requestStatus}</p>
-              {/* <p>{request.roomname}</p> */}
-              {/* <p>🏨 {request.hotelName}</p> */}
-              {/* <p>📍 {request.hotelLocation}</p> */}
               <button onClick={() => handleCancelRequest(request.id)}>
                 Cancel
               </button>
@@ -84,13 +133,38 @@ export default function Profile() {
         {receivedRequestsData.current.map((request) => {
           return (
             <div key={request.id} className={styles.card}>
-              <h3>{request.id}</h3>
+              <h3>
+                {
+                  hotelsData.current.find(
+                    (hotel) =>
+                      hotel.id ===
+                      roomsData.current.find(
+                        (room) => room.id === request.roomId
+                      )?.hotelId
+                  )?.name
+                }
+                {': '}
+                {
+                  roomsData.current.find((room) => room.id === request.roomId)
+                    ?.name
+                }
+              </h3>
+              <p></p>
               <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
               <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
+              <p>
+                📍Location:{' '}
+                {
+                  hotelsData.current.find(
+                    (hotel) =>
+                      hotel.id ===
+                      roomsData.current.find(
+                        (room) => room.id === request.roomId
+                      )?.hotelId
+                  )?.location
+                }
+              </p>
               <p>Status: {request.requestStatus}</p>
-              {/* <p>{request.roomname}</p> */}
-              {/* <p>🏨 {request.hotelName}</p> */}
-              {/* <p>📍 {request.hotelLocation}</p> */}
               <button onClick={() => handleAcceptRequest(request.id)}>
                 Accept
               </button>
