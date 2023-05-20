@@ -10,7 +10,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
-      console.log('You are not logged in!')
+      console.log('You are not logged in!');
       router.push('/');
     }
   }, [state.isUserLoggedIn, router]);
@@ -24,7 +24,7 @@ export default function Profile() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Rezervari</h1>
+        <h1 className={styles.title}>Reservations</h1>
       </main>
     </div>
   );

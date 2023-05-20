@@ -45,15 +45,15 @@ export default function Home() {
             {user && isUserLoggedIn && (
               <div className={styles.grid}>
                 <Link href="/profile" className={styles.card}>
-                  <h2>{'Profil'} &rarr;</h2>
+                  <h2>{'Profile'} &rarr;</h2>
                 </Link>
 
                 <Link href="/reservations" className={styles.card}>
-                  <h2>{'Rezervari'} &rarr;</h2>
+                  <h2>{'Reservations'} &rarr;</h2>
                 </Link>
 
                 <Link href="/hotels" className={styles.card}>
-                  <h2>{'Cauta hotel'} &rarr;</h2>
+                  <h2>{'Search hotel'} &rarr;</h2>
                 </Link>
               </div>
             )}

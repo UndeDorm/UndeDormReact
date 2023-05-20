@@ -53,19 +53,19 @@ const Topbar = () => {
         <h2>{'Unde Dorm'}</h2>
       </Link>
       <div>
-        <TopbarButton onClick={onSearch} title={'Cauta'} />
-        <TopbarButton onClick={onReservations} title={'Rezervari'} />
+        <TopbarButton onClick={onSearch} title={'Search'} />
+        <TopbarButton onClick={onReservations} title={'Reservations'} />
         {state.user?.isOwner && (
-          <TopbarButton title={'Adauga hotel'} onClick={onAddHotel} />
+          <TopbarButton title={'Add hotel'} onClick={onAddHotel} />
         )}
         {state.user?.isOwner && (
-          <TopbarButton title={'Cereri'} onClick={onRequests} />
+          <TopbarButton title={'Requests'} onClick={onRequests} />
         )}
         {state.user?.isOwner && (
-          <TopbarButton title={'Proprietati'} onClick={onProperties} />
+          <TopbarButton title={'Properties'} onClick={onProperties} />
         )}
         {state.isUserLoggedIn ? (
-          <TopbarButton title={'Profil'} onClick={onProfile} />
+          <TopbarButton title={'Profile'} onClick={onProfile} />
         ) : (
           <TopbarButton title={'Sign In'} onClick={onSignIn} />
         )}

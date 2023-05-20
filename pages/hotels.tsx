@@ -70,7 +70,7 @@ export default function HotelList() {
 
       <main className={styles.main}>
         <>
-          <h1 className={styles.title}>{'Lista hoteluri'}</h1>
+          <h1 className={styles.title}>{'Hotels list'}</h1>
           {isLoading ? (
             <h1 className={styles.title}>{'Loading...'}</h1>
           ) : (

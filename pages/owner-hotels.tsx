@@ -100,7 +100,7 @@ export default function HotelList() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>{'Hoteluri detinute'}</h1>
+        <h1 className={styles.title}>{'Owned hotels'}</h1>
         {isLoading ? (
           <h1 className={styles.title}>{'Loading...'}</h1>
         ) : (
