@@ -226,6 +226,7 @@ export const addReservationRequest = ({
       userId: reservationRequest.userId,
       startDate: reservationRequest.startDate,
       endDate: reservationRequest.endDate,
+      id: reservationRequest.id,
     }),
     setDoc(doc(firebaseDb, 'reservations', reservationRequest.id), {
       reservationStatus: reservationRequest.requestStatus,
@@ -236,7 +237,7 @@ export const addReservationRequest = ({
     .catch(onFailure);
 };
 
-export const getReservationRequests = async (roomId : String) => {
+export const getReservationRequestsByRoom = async (roomId : String) => {
   const reservationRequestsRef = collection(firebaseDb, 'reservationRequests');
   const reservationRequestsSnap = await getDocs(reservationRequestsRef);
 
@@ -248,3 +249,16 @@ export const getReservationRequests = async (roomId : String) => {
     return null;
   }
 };
+
+export const getReservationRequestsByUser = async (userId : String) => {
+  const reservationRequestsRef = collection(firebaseDb, 'reservationRequests');
+  const reservationRequestsSnap = await getDocs(reservationRequestsRef);
+
+  if (reservationRequestsSnap) {
+    return reservationRequestsSnap.docs
+      .map((doc) => doc.data())
+      .filter((data) => data.userId === userId) as ReservationRequest[];
+  } else {  
+    return null;
+  }
+}
