@@ -262,3 +262,16 @@ export const getReservationRequestsByUser = async (userId : String) => {
     return null;
   }
 }
+
+export const getReservationRequestsByOwner = async (ownerId : String) => {
+  const reservationRequestsRef = collection(firebaseDb, 'reservationRequests');
+  const reservationRequestsSnap = await getDocs(reservationRequestsRef);
+
+  if (reservationRequestsSnap) {
+    return reservationRequestsSnap.docs
+      .map((doc) => doc.data())
+      .filter((data) => data.ownerId === ownerId) as ReservationRequest[];
+  } else {  
+    return null;
+  }
+}

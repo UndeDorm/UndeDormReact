@@ -5,7 +5,7 @@ import {
   addReservationRequest,
   addRoom,
   getHotel,
-  getReservationRequests,
+  getReservationRequestsByRoom,
   getRoom,
 } from '../../../src/firebase/database';
 import { firebaseDb } from '../../../src/firebase/firebase';
@@ -67,7 +67,7 @@ export default function AddRoomPage({ id }: { id: string }) {
     }
 
     // verify availability
-    const existingRequests = await getReservationRequests(id);
+    const existingRequests = await getReservationRequestsByRoom(id);
     requests.current = existingRequests ?? [];
     console.log(requests.current);
     console.log(existingRequests);
