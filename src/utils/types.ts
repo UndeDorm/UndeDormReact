@@ -29,7 +29,7 @@ export interface ReservationRequest {
   id: string;
   requestStatus: ReservationStatus;
   roomId: string;
-  hotelId: string;
+  ownerId: string;
   userId: string;
   startDate: number;
   endDate: number;

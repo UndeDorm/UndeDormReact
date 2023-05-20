@@ -10,6 +10,7 @@ import { BasicUser, Hotel, Room, ReservationRequest } from '../utils/types';
 import { firebaseDb } from './firebase';
 import { useContext } from 'react';
 import { AuthContext } from '../providers/auth/AuthProvider';
+import exp from 'constants';
 
 export const addUser = ({
   user,
@@ -190,6 +191,8 @@ export const getRoom = async (id: string) => {
   }
 };
 
+
+
 export const editRoom = ({
   roomId,
   newData,
@@ -219,7 +222,7 @@ export const addReservationRequest = ({
     setDoc(doc(firebaseDb, 'reservationRequests', reservationRequest.id), {
       requestStatus: reservationRequest.requestStatus,
       roomId: reservationRequest.roomId,
-      hotelId: reservationRequest.hotelId,
+      ownerId: reservationRequest.ownerId,
       userId: reservationRequest.userId,
       startDate: reservationRequest.startDate,
       endDate: reservationRequest.endDate,
@@ -231,4 +234,17 @@ export const addReservationRequest = ({
   ])
     .then(onSuccess)
     .catch(onFailure);
+};
+
+export const getReservationRequests = async (roomId : String) => {
+  const reservationRequestsRef = collection(firebaseDb, 'reservationRequests');
+  const reservationRequestsSnap = await getDocs(reservationRequestsRef);
+
+  if (reservationRequestsSnap) {
+    return reservationRequestsSnap.docs
+      .map((doc) => doc.data())
+      .filter((data) => data.roomId === roomId) as ReservationRequest[];
+  } else {  
+    return null;
+  }
 };
