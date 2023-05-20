@@ -47,9 +47,9 @@ export default function ModifyRoom({ id }: { id: string }) {
 
   const renderPage = () => {
     return (
-      <main className={styles.main}>
+      <>
         {
-          <main className={styles.main}>
+          <>
             <h1>{'Room name'}</h1>
             <h2>{roomData.current?.name}</h2>
 
@@ -67,9 +67,9 @@ export default function ModifyRoom({ id }: { id: string }) {
               {'Room benefits: '}
               {roomData.current?.benefits}
             </h2>
-          </main>
+          </>
         }
-      </main>
+      </>
     );
   };
 
