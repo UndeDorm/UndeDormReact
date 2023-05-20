@@ -9,6 +9,7 @@ import {
   getReservationRequestsByUser,
 } from '../src/firebase/database';
 import { stat } from 'fs';
+import { request } from 'http';
 
 export default function Profile() {
   const { state } = useContext(AuthContext);
@@ -27,7 +28,10 @@ export default function Profile() {
       if (state.user?.isOwner) {
         getReservationRequestsByOwner(state.user?.id ?? '')
           .then((data) => {
-            receivedRequestsData.current = data ?? [];
+            receivedRequestsData.current =
+              data?.filter((request) => {
+                request.requestStatus === 'pending';
+              }) ?? [];
           })
           .catch((error) => {
             console.error('Error getting reservation requests:', error);
@@ -35,7 +39,10 @@ export default function Profile() {
       }
       getReservationRequestsByUser(state.user?.id ?? '')
         .then((data) => {
-          sentRequestsData.current = data ?? [];
+          sentRequestsData.current =
+            data?.filter((request) => {
+              request.requestStatus === 'pending';
+            }) ?? [];
         })
         .catch((error) => {
           console.error('Error getting reservation requests:', error);
