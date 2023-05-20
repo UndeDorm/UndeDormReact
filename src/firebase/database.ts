@@ -288,4 +288,9 @@ export const editReservationRequest = ({
   updateDoc(doc(firebaseDb, 'reservationRequests', requestId), newData)
     .then(onSuccess)
     .catch(onFailure);
+  updateDoc(doc(firebaseDb, 'reservations', requestId), {
+    reservationStatus: newData.requestStatus,
+  })
+    .then(onSuccess)
+    .catch(onFailure);
 };

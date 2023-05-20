@@ -12,7 +12,6 @@ import { firebaseDb } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, ReservationRequest, Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
-import { get } from 'http';
 
 export default function AddRoomPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -74,26 +73,28 @@ export default function AddRoomPage({ id }: { id: string }) {
     if (existingRequests !== undefined) {
       let isPeriodAvailable = true;
       requests.current.forEach((request) => {
-        if (
-          request.startDate <= arrivalDate.current.getTime() &&
-          request.endDate >= departureDate.current.getTime()
-        ) {
-          isPeriodAvailable = false;
-          return;
-        }
-        if (
-          request.startDate >= arrivalDate.current.getTime() &&
-          request.startDate < departureDate.current.getTime()
-        ) {
-          isPeriodAvailable = false;
-          return;
-        }
-        if (
-          request.endDate > arrivalDate.current.getTime() &&
-          request.endDate <= departureDate.current.getTime()
-        ) {
-          isPeriodAvailable = false;
-          return;
+        if (request.requestStatus.toString() === 'pending' || request.requestStatus.toString() === 'accepted') {
+          if (
+            request.startDate <= arrivalDate.current.getTime() &&
+            request.endDate >= departureDate.current.getTime()
+          ) {
+            isPeriodAvailable = false;
+            return;
+          }
+          if (
+            request.startDate >= arrivalDate.current.getTime() &&
+            request.startDate < departureDate.current.getTime()
+          ) {
+            isPeriodAvailable = false;
+            return;
+          }
+          if (
+            request.endDate > arrivalDate.current.getTime() &&
+            request.endDate <= departureDate.current.getTime()
+          ) {
+            isPeriodAvailable = false;
+            return;
+          }
         }
       });
 

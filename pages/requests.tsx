@@ -11,14 +11,13 @@ import {
   getReservationRequestsByUser,
   getRooms,
 } from '../src/firebase/database';
-import { stat } from 'fs';
-import { request } from 'http';
 
 export default function Profile() {
   const { state } = useContext(AuthContext);
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isDataReady, setIsDataReady] = useState<boolean>(false); // New state to track if data is ready
 
   const sentRequestsData = useRef<ReservationRequest[]>([]);
   const receivedRequestsData = useRef<ReservationRequest[]>([]);
@@ -47,21 +46,14 @@ export default function Profile() {
             data?.filter((request) => request.requestStatus === 'pending') ??
             [];
           if (sentRequestsData.current) {
-            getRooms()
-              .then((data) => {
-                roomsData.current = data ?? [];
+            Promise.all([getRooms(), getHotels()]) // Fetch rooms and hotels simultaneously
+              .then(([rooms, hotels]) => {
+                roomsData.current = rooms ?? [];
+                hotelsData.current = hotels ?? [];
+                setIsDataReady(true); // Data is ready, update the state
               })
               .catch((error) => {
-                console.error('Error getting rooms:', error);
-              })
-              .finally(() => setIsLoading(false));
-
-            getHotels()
-              .then((data) => {
-                hotelsData.current = data ?? [];
-              })
-              .catch((error) => {
-                console.error('Error getting hotels:', error);
+                console.error('Error getting rooms and hotels:', error);
               })
               .finally(() => setIsLoading(false));
           } else {
@@ -81,41 +73,30 @@ export default function Profile() {
   };
 
   const renderSentRequests = () => {
+    if (isLoading) {
+      return <p>Loading...</p>;
+    }
+
+    if (!isDataReady) {
+      return <p>Waiting for data...</p>;
+    }
     return (
       <>
         {sentRequestsData.current.map((request) => {
+          const room = roomsData.current.find((room) => room.id === request.roomId);
+          const hotel = hotelsData.current.find((hotel) => hotel.id === room?.hotelId);
+  
+          if (!room || !hotel) {
+            // Data not available yet, return null or a placeholder if desired
+            return null;
+          }
+  
           return (
             <div key={request.id} className={styles.card}>
-              <h3>
-                {
-                  hotelsData.current.find(
-                    (hotel) =>
-                      hotel.id ===
-                      roomsData.current.find(
-                        (room) => room.id === request.roomId
-                      )?.hotelId
-                  )?.name
-                }
-                {': '}
-                {
-                  roomsData.current.find((room) => room.id === request.roomId)
-                    ?.name
-                }
-              </h3>
+              <h3>{hotel.name}: {room.name}</h3>
               <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
               <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
-              <p>
-                📍Location:{' '}
-                {
-                  hotelsData.current.find(
-                    (hotel) =>
-                      hotel.id ===
-                      roomsData.current.find(
-                        (room) => room.id === request.roomId
-                      )?.hotelId
-                  )?.location
-                }
-              </p>
+              <p>📍Location: {hotel.location}</p>
               <p>Status: {request.requestStatus}</p>
               <button onClick={() => handleCancelRequest(request.id)}>
                 Cancel
@@ -126,44 +107,32 @@ export default function Profile() {
       </>
     );
   };
-
+  
   const renderReceivedRequests = () => {
+    if (isLoading) {
+      return <p>Loading...</p>;
+    }
+
+    if (!isDataReady) {
+      return <p>Waiting for data...</p>;
+    }
     return (
       <>
         {receivedRequestsData.current.map((request) => {
+          const room = roomsData.current.find((room) => room.id === request.roomId);
+          const hotel = hotelsData.current.find((hotel) => hotel.id === room?.hotelId);
+  
+          if (!room || !hotel) {
+            // Data not available yet, return null or a placeholder if desired
+            return null;
+          }
+  
           return (
             <div key={request.id} className={styles.card}>
-              <h3>
-                {
-                  hotelsData.current.find(
-                    (hotel) =>
-                      hotel.id ===
-                      roomsData.current.find(
-                        (room) => room.id === request.roomId
-                      )?.hotelId
-                  )?.name
-                }
-                {': '}
-                {
-                  roomsData.current.find((room) => room.id === request.roomId)
-                    ?.name
-                }
-              </h3>
-              <p></p>
+              <h3>{hotel.name}: {room.name}</h3>
               <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
               <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
-              <p>
-                📍Location:{' '}
-                {
-                  hotelsData.current.find(
-                    (hotel) =>
-                      hotel.id ===
-                      roomsData.current.find(
-                        (room) => room.id === request.roomId
-                      )?.hotelId
-                  )?.location
-                }
-              </p>
+              <p>📍Location: {hotel.location}</p>
               <p>Status: {request.requestStatus}</p>
               <button onClick={() => handleAcceptRequest(request.id)}>
                 Accept
@@ -177,11 +146,12 @@ export default function Profile() {
       </>
     );
   };
+  
 
   const handleCancelRequest = async (reqId: any) => {
     const onSuccess = () => {
       alert('Reservation cancelled!');
-      router.back();
+      router.reload();
     };
     const onFailure = (error: any) => {
       alert('Error cancelling reservation!');
@@ -199,7 +169,7 @@ export default function Profile() {
   const handleAcceptRequest = async (reqId: any) => {
     const onSuccess = () => {
       alert('Reservation accepted!');
-      router.back();
+      router.reload();
     };
     const onFailure = (error: any) => {
       alert('Error accepting reservation!');
@@ -217,7 +187,7 @@ export default function Profile() {
   const handleDeclineRequest = async (reqId: any) => {
     const onSuccess = () => {
       alert('Reservation declined!');
-      router.back();
+      router.reload();
     };
     const onFailure = (error: any) => {
       alert('Error declining reservation!');
