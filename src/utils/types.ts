@@ -48,4 +48,4 @@ export interface Message {
   text: string;
 }
 
-export type ReservationStatus = 'pending' | 'accepted' | 'rejected';
+export type ReservationStatus = 'pending' | 'accepted' | 'declined' | 'canceled';

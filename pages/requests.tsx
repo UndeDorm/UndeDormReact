@@ -5,6 +5,7 @@ import { AuthContext } from '../src/providers/auth/AuthProvider';
 import styles from '../styles/Home.module.css';
 import { ReservationRequest } from '../src/utils/types';
 import {
+  editReservationRequest,
   getReservationRequestsByOwner,
   getReservationRequestsByUser,
 } from '../src/firebase/database';
@@ -29,9 +30,8 @@ export default function Profile() {
         getReservationRequestsByOwner(state.user?.id ?? '')
           .then((data) => {
             receivedRequestsData.current =
-              data?.filter((request) => {
-                request.requestStatus === 'pending';
-              }) ?? [];
+              data?.filter((request) => request.requestStatus === 'pending') ??
+              [];
           })
           .catch((error) => {
             console.error('Error getting reservation requests:', error);
@@ -40,9 +40,8 @@ export default function Profile() {
       getReservationRequestsByUser(state.user?.id ?? '')
         .then((data) => {
           sentRequestsData.current =
-            data?.filter((request) => {
-              request.requestStatus === 'pending';
-            }) ?? [];
+            data?.filter((request) => request.requestStatus === 'pending') ??
+            [];
         })
         .catch((error) => {
           console.error('Error getting reservation requests:', error);
@@ -69,7 +68,9 @@ export default function Profile() {
               {/* <p>{request.roomname}</p> */}
               {/* <p>🏨 {request.hotelName}</p> */}
               {/* <p>📍 {request.hotelLocation}</p> */}
-              <button>Cancel</button>
+              <button onClick={() => handleCancelRequest(request.id)}>
+                Cancel
+              </button>
             </div>
           );
         })}
@@ -90,13 +91,71 @@ export default function Profile() {
               {/* <p>{request.roomname}</p> */}
               {/* <p>🏨 {request.hotelName}</p> */}
               {/* <p>📍 {request.hotelLocation}</p> */}
-              <button>Accept</button>
-              <button>Decline</button>
+              <button onClick={() => handleAcceptRequest(request.id)}>
+                Accept
+              </button>
+              <button onClick={() => handleDeclineRequest(request.id)}>
+                Decline
+              </button>
             </div>
           );
         })}
       </>
     );
+  };
+
+  const handleCancelRequest = async (reqId: any) => {
+    const onSuccess = () => {
+      alert('Reservation cancelled!');
+      router.back();
+    };
+    const onFailure = (error: any) => {
+      alert('Error cancelling reservation!');
+    };
+    let newData = {};
+    newData = { ...newData, requestStatus: 'cancelled' };
+    editReservationRequest({
+      requestId: reqId,
+      newData,
+      onSuccess,
+      onFailure,
+    });
+  };
+
+  const handleAcceptRequest = async (reqId: any) => {
+    const onSuccess = () => {
+      alert('Reservation accepted!');
+      router.back();
+    };
+    const onFailure = (error: any) => {
+      alert('Error accepting reservation!');
+    };
+    let newData = {};
+    newData = { ...newData, requestStatus: 'accepted' };
+    editReservationRequest({
+      requestId: reqId,
+      newData,
+      onSuccess,
+      onFailure,
+    });
+  };
+
+  const handleDeclineRequest = async (reqId: any) => {
+    const onSuccess = () => {
+      alert('Reservation declined!');
+      router.back();
+    };
+    const onFailure = (error: any) => {
+      alert('Error declining reservation!');
+    };
+    let newData = {};
+    newData = { ...newData, requestStatus: 'declined' };
+    editReservationRequest({
+      requestId: reqId,
+      newData,
+      onSuccess,
+      onFailure,
+    });
   };
 
   return (

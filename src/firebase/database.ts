@@ -191,8 +191,6 @@ export const getRoom = async (id: string) => {
   }
 };
 
-
-
 export const editRoom = ({
   roomId,
   newData,
@@ -275,3 +273,19 @@ export const getReservationRequestsByOwner = async (ownerId : String) => {
     return null;
   }
 }
+
+export const editReservationRequest = ({
+  requestId,
+  newData,
+  onSuccess,
+  onFailure,
+}: {
+  requestId: string;
+  newData: Partial<ReservationRequest>;
+  onSuccess: () => void;
+  onFailure: (error: any) => void;
+}) => {
+  updateDoc(doc(firebaseDb, 'reservationRequests', requestId), newData)
+    .then(onSuccess)
+    .catch(onFailure);
+};
