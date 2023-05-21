@@ -12,7 +12,7 @@ import { firebaseDb } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, ReservationRequest, Room } from '../../../src/utils/types';
 import Calendar from 'react-calendar';
-import styles from '../../../styles/Home.module.css';
+import styles from '../../../styles/Requests.module.css';
 
 export default function AddRoomPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -59,10 +59,8 @@ export default function AddRoomPage({ id }: { id: string }) {
       const existingRequests = await getReservationRequestsByRoom(id);
       requests.current = existingRequests ?? [];
     };
-  
   }, [id, state.isUserLoggedIn]);
 
-  
   const createRequest = async () => {
     // verify availability
     const existingRequests = await getReservationRequestsByRoom(id);
@@ -72,7 +70,10 @@ export default function AddRoomPage({ id }: { id: string }) {
     if (existingRequests !== undefined) {
       let isPeriodAvailable = true;
       requests.current.forEach((request) => {
-        if (request.requestStatus.toString() === 'pending' || request.requestStatus.toString() === 'accepted') {
+        if (
+          request.requestStatus.toString() === 'pending' ||
+          request.requestStatus.toString() === 'accepted'
+        ) {
           if (
             request.startDate <= selectedDates[0].getTime() &&
             request.endDate >= selectedDates[1].getTime()
@@ -153,23 +154,28 @@ export default function AddRoomPage({ id }: { id: string }) {
   const tileDisabled = ({ date }: { date: Date }) => {
     const today = new Date();
     const isPastDate = date < today;
-  
+
     if (isPastDate) {
       return true;
     }
-  
+
     const isReservedDate = requests.current.some((request) => {
       const startDate = new Date(request.startDate);
       const endDate = new Date(request.endDate);
-  
+
       // Check if the current date is within the reserved period
       return date >= startDate && date <= endDate;
     });
-  
+
     return isReservedDate;
   };
 
-  const DATE_OPTIONS = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+  const DATE_OPTIONS = {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  };
 
   const renderPage = () => {
     return (
@@ -177,9 +183,13 @@ export default function AddRoomPage({ id }: { id: string }) {
         <h1 className={styles.title}>Create a request</h1>
         <h2>Hotel: {hotelData.current?.name}</h2>
         <h2>Room: {roomName.current}</h2>
-        <h2>Selected Arrival: {selectedDates[0]?.toLocaleDateString('en-US')}</h2>
-        <h2>Selected Departure: {selectedDates[1]?.toLocaleDateString('en-US')}</h2>
-        <h2>Select arrival and departure dates:</h2> 
+        <h2>
+          Selected Arrival: {selectedDates[0]?.toLocaleDateString('en-US')}
+        </h2>
+        <h2>
+          Selected Departure: {selectedDates[1]?.toLocaleDateString('en-US')}
+        </h2>
+        <h2>Select arrival and departure dates:</h2>
         <div className="calendar">
           <Calendar
             onClickDay={handleDateClick}
