@@ -144,3 +144,26 @@
   align-items: center;
   justify-content: center;
 }
+
+.highlight {
+  color: yellow;
+}
+
+.selected {
+  background-color: #e0e0e0;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.selectedStart {
+  background-color: #e0e0e0;
+  border-radius: 50% 0 0 50%;
+}
+
+.selectedEnd {
+  background-color: #e0e0e0;
+  border-radius: 0 50% 50% 0;
+}

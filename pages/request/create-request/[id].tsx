@@ -11,16 +11,17 @@ import {
 import { firebaseDb } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, ReservationRequest, Room } from '../../../src/utils/types';
+import Calendar from 'react-calendar';
 import styles from '../../../styles/Home.module.css';
 
 export default function AddRoomPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
-  const arrivalDate = useRef<Date>(new Date());
-  const departureDate = useRef<Date>(new Date());
   const hotelOwnerId = useRef<string>();
   const hotelData = useRef<Hotel>();
   const hotelId = useRef<string>();
+  const roomName = useRef<string>();
   const requests = useRef<ReservationRequest[]>([]);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -31,12 +32,14 @@ export default function AddRoomPage({ id }: { id: string }) {
     } else {
       getRoom(id)
         .then((data) => {
+          roomName.current = data.name;
           hotelId.current = data.hotelId;
           if (hotelId.current !== undefined) {
             getHotel(hotelId.current)
               .then((data) => {
                 hotelData.current = data;
                 hotelOwnerId.current = data.ownerId;
+                fetchReservationRequests();
               })
               .catch((error) => {
                 console.log('Error getting hotel:', error);
@@ -51,20 +54,16 @@ export default function AddRoomPage({ id }: { id: string }) {
           setIsLoading(false);
         });
     }
+
+    const fetchReservationRequests = async () => {
+      const existingRequests = await getReservationRequestsByRoom(id);
+      requests.current = existingRequests ?? [];
+    };
+  
   }, [id, state.isUserLoggedIn]);
 
+  
   const createRequest = async () => {
-    // verify that arrival date is before departure date
-    if (arrivalDate.current.getTime() > departureDate.current.getTime()) {
-      alert('Arrival date must be before departure date!');
-      return;
-    }
-    // verify that arrival date is not in the past
-    if (arrivalDate.current.getTime() < new Date().getTime()) {
-      alert('Arrival date must be in the future!');
-      return;
-    }
-
     // verify availability
     const existingRequests = await getReservationRequestsByRoom(id);
     requests.current = existingRequests ?? [];
@@ -75,22 +74,22 @@ export default function AddRoomPage({ id }: { id: string }) {
       requests.current.forEach((request) => {
         if (request.requestStatus.toString() === 'pending' || request.requestStatus.toString() === 'accepted') {
           if (
-            request.startDate <= arrivalDate.current.getTime() &&
-            request.endDate >= departureDate.current.getTime()
+            request.startDate <= selectedDates[0].getTime() &&
+            request.endDate >= selectedDates[1].getTime()
           ) {
             isPeriodAvailable = false;
             return;
           }
           if (
-            request.startDate >= arrivalDate.current.getTime() &&
-            request.startDate < departureDate.current.getTime()
+            request.startDate >= selectedDates[0].getTime() &&
+            request.startDate < selectedDates[1].getTime()
           ) {
             isPeriodAvailable = false;
             return;
           }
           if (
-            request.endDate > arrivalDate.current.getTime() &&
-            request.endDate <= departureDate.current.getTime()
+            request.endDate > selectedDates[0].getTime() &&
+            request.endDate <= selectedDates[1].getTime()
           ) {
             isPeriodAvailable = false;
             return;
@@ -108,8 +107,8 @@ export default function AddRoomPage({ id }: { id: string }) {
     const myDocRef = doc(myCollection);
     const reservationRequest: ReservationRequest = {
       id: myDocRef.id,
-      startDate: arrivalDate.current.getTime(),
-      endDate: departureDate.current.getTime(),
+      startDate: selectedDates[0].getTime(),
+      endDate: selectedDates[1].getTime(),
       roomId: id,
       ownerId: hotelOwnerId.current ?? '',
       userId: state.user?.id ?? '',
@@ -128,24 +127,67 @@ export default function AddRoomPage({ id }: { id: string }) {
     addReservationRequest({ reservationRequest, onSuccess, onFailure });
   };
 
+  const handleDateClick = (date: Date) => {
+    if (selectedDates.length === 2) {
+      setSelectedDates([date]);
+    } else if (selectedDates.length === 1) {
+      if (date > selectedDates[0]) {
+        setSelectedDates([selectedDates[0], date]);
+      } else {
+        setSelectedDates([date, selectedDates[0]]);
+      }
+    } else {
+      setSelectedDates([date]);
+    }
+  };
+
+  const tileClassName = ({ date }: { date: Date }) => {
+    if (selectedDates.length === 2) {
+      if (date >= selectedDates[0] && date <= selectedDates[1]) {
+        return styles.highlight;
+      }
+    }
+    return '';
+  };
+
+  const tileDisabled = ({ date }: { date: Date }) => {
+    const today = new Date();
+    const isPastDate = date < today;
+  
+    if (isPastDate) {
+      return true;
+    }
+  
+    const isReservedDate = requests.current.some((request) => {
+      const startDate = new Date(request.startDate);
+      const endDate = new Date(request.endDate);
+  
+      // Check if the current date is within the reserved period
+      return date >= startDate && date <= endDate;
+    });
+  
+    return isReservedDate;
+  };
+
+  const DATE_OPTIONS = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+
   const renderPage = () => {
     return (
       <>
         <h1 className={styles.title}>Create a request</h1>
-        <h2>Arrival date:</h2>
-        <input
-          type="date"
-          placeholder="Date Of Birth"
-          className={styles.input}
-          onChange={(e) => (arrivalDate.current = new Date(e.target.value))}
-        />
-        <h2>Departure date:</h2>
-        <input
-          type="date"
-          placeholder="Date Of Birth"
-          className={styles.input}
-          onChange={(e) => (departureDate.current = new Date(e.target.value))}
-        />
+        <h2>Hotel: {hotelData.current?.name}</h2>
+        <h2>Room: {roomName.current}</h2>
+        <h2>Selected Arrival: {selectedDates[0]?.toLocaleDateString('en-US')}</h2>
+        <h2>Selected Departure: {selectedDates[1]?.toLocaleDateString('en-US')}</h2>
+        <h2>Select arrival and departure dates:</h2> 
+        <div className="calendar">
+          <Calendar
+            onClickDay={handleDateClick}
+            tileClassName={tileClassName}
+            tileDisabled={tileDisabled}
+            selectRange={true}
+          />
+        </div>
         <button className={styles.card} onClick={createRequest}>
           Send Request
         </button>
