@@ -2,7 +2,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
-import styles from '../styles/Home.module.css';
+import styles from '../styles/Requests.module.css';
 import { Hotel, ReservationRequest, Room } from '../src/utils/types';
 import {
   editReservationRequest,
@@ -11,6 +11,8 @@ import {
   getReservationRequestsByUser,
   getRooms,
 } from '../src/firebase/database';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { firebaseDb } from '../src/firebase/firebase';
 
 export default function Profile() {
   const { state } = useContext(AuthContext);
@@ -33,7 +35,7 @@ export default function Profile() {
         getReservationRequestsByOwner(state.user?.id ?? '')
           .then((data) => {
             receivedRequestsData.current =
-              data?.filter((request) => request.requestStatus === 'pending') ??
+              data?.filter((request) => request.requestStatus !== 'accepted') ??
               [];
           })
           .catch((error) => {
@@ -43,7 +45,7 @@ export default function Profile() {
       getReservationRequestsByUser(state.user?.id ?? '')
         .then((data) => {
           sentRequestsData.current =
-            data?.filter((request) => request.requestStatus === 'pending') ??
+            data?.filter((request) => request.requestStatus !== 'accepted') ??
             [];
           if (sentRequestsData.current) {
             Promise.all([getRooms(), getHotels()]) // Fetch rooms and hotels simultaneously
@@ -83,31 +85,50 @@ export default function Profile() {
     return (
       <>
         {sentRequestsData.current.map((request) => {
-          const room = roomsData.current.find((room) => room.id === request.roomId);
-          const hotel = hotelsData.current.find((hotel) => hotel.id === room?.hotelId);
-  
+          const room = roomsData.current.find(
+            (room) => room.id === request.roomId
+          );
+          const hotel = hotelsData.current.find(
+            (hotel) => hotel.id === room?.hotelId
+          );
+
           if (!room || !hotel) {
             // Data not available yet, return null or a placeholder if desired
             return null;
           }
-  
+
           return (
             <div key={request.id} className={styles.card}>
-              <h3>{hotel.name}: {room.name}</h3>
+              <h3>
+                {hotel.name}: {room.name}
+              </h3>
               <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
               <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
               <p>📍Location: {hotel.location}</p>
-              <p>Status: {request.requestStatus}</p>
-              <button onClick={() => handleCancelRequest(request.id)}>
-                Cancel
-              </button>
+              {request.requestStatus === 'pending' ? (
+                <>
+                  <p>Status: {request.requestStatus}</p>
+                  <button onClick={() => handleCancelRequest(request.id)}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className={styles.redText}>
+                    Status: {request.requestStatus}
+                  </p>
+                  <button onClick={() => handleDeleteRequest(request.id)}>
+                    Delete
+                  </button>
+                </>
+              )}
             </div>
           );
         })}
       </>
     );
   };
-  
+
   const renderReceivedRequests = () => {
     if (isLoading) {
       return <p>Loading...</p>;
@@ -119,42 +140,60 @@ export default function Profile() {
     return (
       <>
         {receivedRequestsData.current.map((request) => {
-          const room = roomsData.current.find((room) => room.id === request.roomId);
-          const hotel = hotelsData.current.find((hotel) => hotel.id === room?.hotelId);
-  
+          const room = roomsData.current.find(
+            (room) => room.id === request.roomId
+          );
+          const hotel = hotelsData.current.find(
+            (hotel) => hotel.id === room?.hotelId
+          );
+
           if (!room || !hotel) {
             // Data not available yet, return null or a placeholder if desired
             return null;
           }
-  
+
           return (
             <div key={request.id} className={styles.card}>
-              <h3>{hotel.name}: {room.name}</h3>
+              <h3>
+                {hotel.name}: {room.name}
+              </h3>
               <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
               <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
               <p>📍Location: {hotel.location}</p>
-              <p>Status: {request.requestStatus}</p>
-              <button onClick={() => handleAcceptRequest(request.id)}>
-                Accept
-              </button>
-              <button onClick={() => handleDeclineRequest(request.id)}>
-                Decline
-              </button>
+              {request.requestStatus === 'pending' ? (
+                <>
+                  <p>Status: {request.requestStatus}</p>
+                  <button onClick={() => handleAcceptRequest(request.id)}>
+                    Accept
+                  </button>
+                  <button onClick={() => handleDeclineRequest(request.id)}>
+                    Decline
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className={styles.redText}>
+                    Status: {request.requestStatus}
+                  </p>
+                  <button onClick={() => handleDeleteRequest(request.id)}>
+                    Delete
+                  </button>
+                </>
+              )}
             </div>
           );
         })}
       </>
     );
   };
-  
 
   const handleCancelRequest = async (reqId: any) => {
     const onSuccess = () => {
-      alert('Reservation cancelled!');
+      console.log('Reservation cancelled!');
       router.reload();
     };
     const onFailure = (error: any) => {
-      alert('Error cancelling reservation!');
+      console.log('Error cancelling reservation!');
     };
     let newData = {};
     newData = { ...newData, requestStatus: 'cancelled' };
@@ -168,11 +207,11 @@ export default function Profile() {
 
   const handleAcceptRequest = async (reqId: any) => {
     const onSuccess = () => {
-      alert('Reservation accepted!');
+      console.log('Reservation accepted!');
       router.reload();
     };
     const onFailure = (error: any) => {
-      alert('Error accepting reservation!');
+      console.log('Error accepting reservation!');
     };
     let newData = {};
     newData = { ...newData, requestStatus: 'accepted' };
@@ -186,11 +225,11 @@ export default function Profile() {
 
   const handleDeclineRequest = async (reqId: any) => {
     const onSuccess = () => {
-      alert('Reservation declined!');
+      console.log('Reservation declined!');
       router.reload();
     };
     const onFailure = (error: any) => {
-      alert('Error declining reservation!');
+      console.log('Error declining reservation!');
     };
     let newData = {};
     newData = { ...newData, requestStatus: 'declined' };
@@ -200,6 +239,17 @@ export default function Profile() {
       onSuccess,
       onFailure,
     });
+  };
+
+  const handleDeleteRequest = async (reqId: string) => {
+    try {
+      await deleteDoc(doc(firebaseDb, 'reservationRequests', reqId));
+      await deleteDoc(doc(firebaseDb, 'reservations', reqId));
+      console.log('Reservation request deleted successfully!');
+      router.reload();
+    } catch (error) {
+      console.error('Error deleting reservation request:', error);
+    }
   };
 
   return (
