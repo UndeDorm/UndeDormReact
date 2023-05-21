@@ -170,13 +170,6 @@ export default function AddRoomPage({ id }: { id: string }) {
     return isReservedDate;
   };
 
-  const DATE_OPTIONS = {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  };
-
   const renderPage = () => {
     return (
       <>
@@ -184,10 +177,18 @@ export default function AddRoomPage({ id }: { id: string }) {
         <h2>Hotel: {hotelData.current?.name}</h2>
         <h2>Room: {roomName.current}</h2>
         <h2>
-          Selected Arrival: {selectedDates[0]?.toLocaleDateString('en-US')}
+          Selected Arrival: {
+            selectedDates[0] ?
+            selectedDates[0]?.toLocaleDateString('en-US')
+            :
+            'No date selected'}
         </h2>
         <h2>
-          Selected Departure: {selectedDates[1]?.toLocaleDateString('en-US')}
+          Selected Departure: {
+            selectedDates[1] ?
+            selectedDates[1]?.toLocaleDateString('en-US')
+            :
+            'No date selected'}
         </h2>
         <h2>Select arrival and departure dates:</h2>
         <div className="calendar">

@@ -107,7 +107,9 @@ export default function Profile() {
               <p>📍Location: {hotel.location}</p>
               {request.requestStatus === 'pending' ? (
                 <>
-                  <p>Status: {request.requestStatus}</p>
+                  <p className={styles.highlight}>
+                    Status: {request.requestStatus}
+                  </p>
                   <button onClick={() => handleCancelRequest(request.id)}>
                     Cancel
                   </button>
@@ -162,7 +164,9 @@ export default function Profile() {
               <p>📍Location: {hotel.location}</p>
               {request.requestStatus === 'pending' ? (
                 <>
-                  <p>Status: {request.requestStatus}</p>
+                  <p className={styles.highlight}>
+                    Status: {request.requestStatus}
+                  </p>
                   <button onClick={() => handleAcceptRequest(request.id)}>
                     Accept
                   </button>
