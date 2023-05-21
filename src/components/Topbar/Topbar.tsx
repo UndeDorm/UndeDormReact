@@ -54,11 +54,13 @@ const Topbar = () => {
       </Link>
       <div>
         <TopbarButton onClick={onSearch} title={'Search'} />
+        {state.isUserLoggedIn && (
         <TopbarButton onClick={onReservations} title={'Reservations'} />
+        )}
         {state.user?.isOwner && (
           <TopbarButton title={'Add hotel'} onClick={onAddHotel} />
         )}
-        {state.user?.isOwner && (
+        {state.isUserLoggedIn && (
           <TopbarButton title={'Requests'} onClick={onRequests} />
         )}
         {state.user?.isOwner && (
