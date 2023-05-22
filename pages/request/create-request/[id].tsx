@@ -62,11 +62,18 @@ export default function AddRoomPage({ id }: { id: string }) {
   }, [id, state.isUserLoggedIn]);
 
   const createRequest = async () => {
-    // verify availability
+    if (selectedDates.length !== 2) {
+      alert('Please select a period!');
+      return;
+    }
+
+    if (selectedDates[0].getTime() === selectedDates[1].getTime()) {
+      alert('You need to make a reservation for at least 2 days!');
+      return;
+    }
+
     const existingRequests = await getReservationRequestsByRoom(id);
     requests.current = existingRequests ?? [];
-    console.log(requests.current);
-    console.log(existingRequests);
     if (existingRequests !== undefined) {
       let isPeriodAvailable = true;
       requests.current.forEach((request) => {
@@ -99,7 +106,7 @@ export default function AddRoomPage({ id }: { id: string }) {
       });
 
       if (!isPeriodAvailable) {
-        alert('Period is not available!');
+        alert('Period is not available! You are trying to reserve a period that overlaps with an existing reservation.');
         return;
       }
     }
@@ -117,7 +124,7 @@ export default function AddRoomPage({ id }: { id: string }) {
     };
 
     const onSuccess = () => {
-      console.log('Request added successfully');
+      alert('Request added successfully!');
       router.back();
     };
     const onFailure = (error: any) => {
@@ -164,7 +171,7 @@ export default function AddRoomPage({ id }: { id: string }) {
       const endDate = new Date(request.endDate);
 
       // Check if the current date is within the reserved period
-      return date >= startDate && date <= endDate;
+      return date >= startDate && date <= endDate && (request.requestStatus.toString() === 'pending' || request.requestStatus.toString() === 'accepted');
     });
 
     return isReservedDate;
@@ -199,9 +206,11 @@ export default function AddRoomPage({ id }: { id: string }) {
             selectRange={true}
           />
         </div>
-        <button className={styles.card} onClick={createRequest}>
-          Send Request
-        </button>
+        <div className={styles.grid}>
+          <button className={styles.card} onClick={createRequest}>
+            Send Request
+          </button>
+        </div>
       </>
     );
   };
