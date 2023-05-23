@@ -1,7 +1,9 @@
+import { ref, uploadBytes } from 'firebase/storage';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { editRoom, getHotel, getRoom } from '../../../src/firebase/database';
+import { storage } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
@@ -17,6 +19,8 @@ export default function ModifyRoom({ id }: { id: string }) {
   const roomOriginalData = useRef<Room>();
   const hotelData = useRef<Hotel>();
   const hotelOwnerId = useRef<string>();
+  const images = useRef<File[]>([]);
+  const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -56,6 +60,15 @@ export default function ModifyRoom({ id }: { id: string }) {
         });
     }
   }, [id, router, state]);
+
+  const addImage = () => {
+    if (imageUpload == null) {
+      alert("Please select an image!");
+      return;
+    }
+    images.current.push(imageUpload);
+    alert("Image uploaded successfully!");
+  };
 
   const onSave = () => {
     const onSuccess = () => {
@@ -105,6 +118,19 @@ export default function ModifyRoom({ id }: { id: string }) {
       newData = { ...newData, benefits: roomBenefitsRef.current };
     }
 
+    if (images.current.length > 0) {
+      const updatedImages = [...roomOriginalData.current?.images || []];
+
+      images.current.forEach((image) => {
+        const uniqueId = image.name + Date.now().toString();
+        updatedImages.push(uniqueId);
+        const imageRef = ref(storage, `rooms/${id}/${uniqueId}`);
+        uploadBytes(imageRef, image);
+      });
+
+      newData = { ...newData, images: updatedImages};
+    }
+
     if (Object.keys(newData).length === 0) {
       alert('No changes were made!');
       return;
@@ -139,7 +165,20 @@ export default function ModifyRoom({ id }: { id: string }) {
           defaultValue={roomOriginalData.current?.benefits}
           onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
-        <button onClick={onSave}>Save</button>
+        <input
+            type="file"
+            onChange={(e) => {
+              setImageUpload(e.target.files?.[0] ?? null);
+            }}
+            className={styles.input}
+          />
+
+        <button onClick={addImage} className={styles.card}>
+          {'Upload Image'}
+        </button>
+        <button onClick={onSave}>
+          {'Save'}
+        </button>
       </>
     );
   };
