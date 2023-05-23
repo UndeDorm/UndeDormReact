@@ -1,22 +1,19 @@
 import Head from 'next/head';
-import { provider, auth, firebaseDb, storage } from '../src/firebase/firebase';
+import { provider, auth, firebaseDb } from '../src/firebase/firebase';
 import styles from '../styles/Hotels.module.css';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import router from 'next/router';
 import { BasicUser, Hotel } from '../src/utils/types';
 import { addHotel } from '../src/firebase/database';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import { collection, doc } from 'firebase/firestore';
-import { ref, uploadBytes } from 'firebase/storage';
 
 export default function AddHotelPage() {
   const { state } = useContext(AuthContext);
   const name = useRef<string>('');
   const location = useRef<string>('');
   const description = useRef<string>('');
-  const images = useRef<File[]>([]);
-  const uniqueImages = useRef<string[]>([]);
-  const [imageUpload, setImageUpload] = useState<File | null>(null);
+  const images = useRef<string[]>(['']);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -31,40 +28,22 @@ export default function AddHotelPage() {
       }
     }
   }, [state]);
-  
-  const addImage = () => {
-    if (imageUpload == null) {
-      alert("Please select an image!");
-      return;
-    }
-    images.current.push(imageUpload);
-    alert("Image uploaded successfully!");
-  };
 
   const addHotelToDatabase = () => {
     const myCollection = collection(firebaseDb, 'hotels');
     const myDocRef = doc(myCollection);
-    const hotelId = myDocRef.id;
-
-    images.current.forEach((image) => {
-      const uniqueId = image.name + Date.now().toString();
-      uniqueImages.current.push(uniqueId);
-      const imageRef = ref(storage, `hotels/${hotelId}/${uniqueId}`);
-      uploadBytes(imageRef, image);
-    });
-
     const hotel: Hotel = {
-      id: hotelId,
+      id: myDocRef.id,
       name: name.current,
       location: location.current,
       description: description.current,
-      images: uniqueImages.current,
+      images: images.current,
       ownerId: state.user?.id ?? '',
     };
 
     const onSuccess = () => {
-      alert('Hotel added successfully');
-      router.push('/owner-hotels');
+      console.log('Hotel added successfully');
+      router.push('/');
     };
     const onFailure = (error: any) => {};
 
@@ -90,21 +69,13 @@ export default function AddHotelPage() {
         onChange={(e) => (description.current = e.target.value)}
       />
       <input
-        type="file"
-        onChange={(e) => {
-          setImageUpload(e.target.files?.[0] ?? null);
-        }}
+        placeholder="Image URL"
         className={styles.input}
+        onChange={(e) => (images.current = [...images.current, e.target.value])}
       />
-      <div className={styles.grid}>
-        <button onClick={addImage} className={styles.card}>
-          {'Upload Image'}
-        </button>
-
-        <button onClick={addHotelToDatabase} className={styles.card}>
-          {'Add Hotel'}
-        </button>
-      </div>
+      <button onClick={addHotelToDatabase} className={styles.button}>
+        {'Add Hotel'}
+      </button>
     </main>
   );
 }

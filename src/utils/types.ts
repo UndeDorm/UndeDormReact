@@ -23,7 +23,6 @@ export interface Room {
   pricePerNight: number;
   beds: number;
   hotelId: string;
-  images: string[];
 }
 
 export interface ReservationRequest {
