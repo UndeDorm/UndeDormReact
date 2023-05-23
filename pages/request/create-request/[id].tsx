@@ -39,12 +39,20 @@ export default function AddRoomPage({ id }: { id: string }) {
               .then((data) => {
                 hotelData.current = data;
                 hotelOwnerId.current = data.ownerId;
-                fetchReservationRequests();
+                getReservationRequestsByRoom(id)
+                  .then((data) => {
+                    requests.current = data ?? [];
+                  })
+                  .catch((error) => {
+                    console.log('Error getting reservation requests:', error);
+                  });
               })
               .catch((error) => {
                 console.log('Error getting hotel:', error);
               })
-              .finally(() => setIsLoading(false));
+              .finally(() => {
+                setIsLoading(false);
+              });
           } else {
             setIsLoading(false);
           }
@@ -54,11 +62,6 @@ export default function AddRoomPage({ id }: { id: string }) {
           setIsLoading(false);
         });
     }
-
-    const fetchReservationRequests = async () => {
-      const existingRequests = await getReservationRequestsByRoom(id);
-      requests.current = existingRequests ?? [];
-    };
   }, [id, state.isUserLoggedIn]);
 
   const createRequest = async () => {
@@ -106,7 +109,9 @@ export default function AddRoomPage({ id }: { id: string }) {
       });
 
       if (!isPeriodAvailable) {
-        alert('Period is not available! You are trying to reserve a period that overlaps with an existing reservation.');
+        alert(
+          'Period is not available! You are trying to reserve a period that overlaps with an existing reservation.'
+        );
         return;
       }
     }
@@ -159,19 +164,17 @@ export default function AddRoomPage({ id }: { id: string }) {
   };
 
   const tileDisabled = ({ date }: { date: Date }) => {
-    const today = new Date();
-    const isPastDate = date < today;
-
-    if (isPastDate) {
-      return true;
-    }
-
     const isReservedDate = requests.current.some((request) => {
       const startDate = new Date(request.startDate);
       const endDate = new Date(request.endDate);
 
       // Check if the current date is within the reserved period
-      return date >= startDate && date <= endDate && (request.requestStatus.toString() === 'pending' || request.requestStatus.toString() === 'accepted');
+      return (
+        date >= startDate &&
+        date <= endDate &&
+        (request.requestStatus.toString() === 'pending' ||
+          request.requestStatus.toString() === 'accepted')
+      );
     });
 
     return isReservedDate;
@@ -180,35 +183,41 @@ export default function AddRoomPage({ id }: { id: string }) {
   const renderPage = () => {
     return (
       <>
-        <h1 className={styles.title}>Create a request</h1>
-        <h2>Hotel: {hotelData.current?.name}</h2>
-        <h2>Room: {roomName.current}</h2>
+        <h1 className={styles.title}>{'Create a request'}</h1>
         <h2>
-          Selected Arrival: {
-            selectedDates[0] ?
-            selectedDates[0]?.toLocaleDateString('en-US')
-            :
-            'No date selected'}
+          {'Hotel: '}
+          {hotelData.current?.name}
         </h2>
         <h2>
-          Selected Departure: {
-            selectedDates[1] ?
-            selectedDates[1]?.toLocaleDateString('en-US')
-            :
-            'No date selected'}
+          {'Room: '}
+          {roomName.current}
         </h2>
-        <h2>Select arrival and departure dates:</h2>
+        <h2>
+          {'Selected Arrival: '}
+          {selectedDates[0]
+            ? selectedDates[0]?.toLocaleDateString('en-US')
+            : 'No date selected'}
+        </h2>
+        <h2>
+          {'Selected Departure: '}
+          {selectedDates[1]
+            ? selectedDates[1]?.toLocaleDateString('en-US')
+            : 'No date selected'}
+        </h2>
+        <h2>{'Select arrival and departure dates:'}</h2>
         <div className="calendar">
           <Calendar
             onClickDay={handleDateClick}
             tileClassName={tileClassName}
             tileDisabled={tileDisabled}
             selectRange={true}
+            minDetail={'year'}
+            minDate={new Date()}
           />
         </div>
         <div className={styles.grid}>
           <button className={styles.card} onClick={createRequest}>
-            Send Request
+            {'Send Request'}
           </button>
         </div>
       </>
