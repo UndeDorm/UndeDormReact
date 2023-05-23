@@ -10,11 +10,10 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { editHotel, getHotel, getRooms } from '../../src/firebase/database';
-import { firebaseDb, storage } from '../../src/firebase/firebase';
+import { firebaseDb } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
 import { Hotel, Room } from '../../src/utils/types';
-import { ref, uploadBytes } from 'firebase/storage';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -28,8 +27,6 @@ export default function HotelPage({ id }: { id: string }) {
   const hotelDescriptionRef = useRef<string>(
     hotelData.current?.description ?? ''
   );
-  const images = useRef<File[]>([]);
-  const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -89,15 +86,6 @@ export default function HotelPage({ id }: { id: string }) {
     router.push(`/hotel/view-room/${roomId}`);
   };
 
-  const addImage = () => {
-    if (imageUpload == null) {
-      alert("Please select an image!");
-      return;
-    }
-    images.current.push(imageUpload);
-    alert("Image uploaded successfully!");
-  };
-
   const onSave = () => {
     const onSuccess = async () => {
       alert('Hotel updated successfully!');
@@ -134,21 +122,10 @@ export default function HotelPage({ id }: { id: string }) {
       newData = { ...newData, location: hotelLocationRef.current };
     }
 
-    if (hotelDescriptionRef.current !== originalHotelData.current?.description) {
+    if (
+      hotelDescriptionRef.current !== originalHotelData.current?.description
+    ) {
       newData = { ...newData, description: hotelDescriptionRef.current };
-    }
-
-    if (images.current.length > 0) {
-      const updatedImages = [...originalHotelData.current?.images || []];
-
-      images.current.forEach((image) => {
-        const uniqueId = image.name + Date.now().toString();
-        updatedImages.push(uniqueId);
-        const imageRef = ref(storage, `hotels/${id}/${uniqueId}`);
-        uploadBytes(imageRef, image);
-      });
-
-      newData = { ...newData, images: updatedImages};
     }
 
     if (Object.keys(newData).length === 0) {
@@ -188,27 +165,15 @@ export default function HotelPage({ id }: { id: string }) {
             defaultValue={hotelLocationRef.current}
             onChange={(e) => (hotelLocationRef.current = e.target.value)}
           />
-          <h2>{'Description:'}</h2>
+          <h2>Description:</h2>
           <input
             type="text"
             className={styles.input}
             defaultValue={hotelDescriptionRef.current}
             onChange={(e) => (hotelDescriptionRef.current = e.target.value)}
           />
-          <input
-            type="file"
-            onChange={(e) => {
-              setImageUpload(e.target.files?.[0] ?? null);
-            }}
-            className={styles.input}
-          />
-
-          <button onClick={addImage} className={styles.card}>
-           {'Upload Image'}
-          </button>
-
           <button className={styles.card} onClick={onSave}>
-            {'Update Hotel'}
+            Update Hotel
           </button>
 
           <table className={styles.table}>
