@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import styles from '../styles/Hotels.module.css';
-import { SetStateAction, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../src/providers/auth/AuthProvider';
 import { useRouter } from 'next/router';
 import { firebaseDb, storage, storageRef } from '../src/firebase/firebase';
@@ -13,8 +13,6 @@ export default function HotelList() {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [locationFilter, setLocationFilter] = useState('');
-  const [nameFilter, setNameFilter] = useState('');
 
   const hotelsData = useRef<Hotel[]>([]);
 
@@ -42,29 +40,10 @@ export default function HotelList() {
     }
   };
 
-  const handleLocationFilterChange = (event: {
-    target: { value: SetStateAction<string> };
-  }) => {
-    setLocationFilter(event.target.value);
-  };
-
-  const handleNameFilterChange = (event: {
-    target: { value: SetStateAction<string> };
-  }) => {
-    setNameFilter(event.target.value);
-  };
-
   const renderHotels = () => {
-    const locationFilteredHotels = hotelsData.current.filter((hotel) =>
-      hotel.location.toLowerCase().includes(locationFilter.toLowerCase())
-    );
-    const nameFilteredHotels = locationFilteredHotels.filter((hotel) =>
-      hotel.name.toLowerCase().includes(nameFilter.toLowerCase())
-    );
-
     return (
       <>
-        {nameFilteredHotels.map((hotel) => {
+        {hotelsData.current.map((hotel) => {
           return (
             <div
               key={hotel.id}
@@ -95,23 +74,7 @@ export default function HotelList() {
           {isLoading ? (
             <h1 className={styles.title}>{'Loading...'}</h1>
           ) : (
-            <>
-              <input
-                type="text"
-                className={styles.input}
-                defaultValue={locationFilter}
-                onChange={handleLocationFilterChange}
-                placeholder={'Filter by location'}
-              />
-              <input
-                type="text"
-                className={styles.input}
-                defaultValue={nameFilter}
-                onChange={handleNameFilterChange}
-                placeholder={'Filter by name'}
-              />
-              {renderHotels()}
-            </>
+            renderHotels()
           )}
         </>
       </main>

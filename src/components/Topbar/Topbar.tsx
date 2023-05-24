@@ -62,7 +62,7 @@ const Topbar = () => {
         {state.user?.isOwner && (
           <TopbarButton title={'Add hotel'} onClick={onAddHotel} />
         )}
-        {state.user?.isOwner && (
+        {state.isUserLoggedIn && (
           <TopbarButton title={'Requests'} onClick={onRequests} />
         )}
         {state.user?.isOwner && (

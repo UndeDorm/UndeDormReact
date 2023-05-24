@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { editRoom, getHotel, getRoom } from '../../../src/firebase/database';
+import { storage } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
@@ -18,6 +19,8 @@ export default function ModifyRoom({ id }: { id: string }) {
   const roomOriginalData = useRef<Room>();
   const hotelData = useRef<Hotel>();
   const hotelOwnerId = useRef<string>();
+  const images = useRef<File[]>([]);
+  const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const imageURLs = useRef<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -72,6 +75,15 @@ export default function ModifyRoom({ id }: { id: string }) {
     }
   }, [id, router, state]);
 
+  const addImage = () => {
+    if (imageUpload == null) {
+      alert("Please select an image!");
+      return;
+    }
+    images.current.push(imageUpload);
+    alert("Image uploaded successfully!");
+  };
+
   const onSave = () => {
     const onSuccess = () => {
       alert('Room successfully modified!');
@@ -120,6 +132,19 @@ export default function ModifyRoom({ id }: { id: string }) {
       newData = { ...newData, benefits: roomBenefitsRef.current };
     }
 
+    if (images.current.length > 0) {
+      const updatedImages = [...roomOriginalData.current?.images || []];
+
+      images.current.forEach((image) => {
+        const uniqueId = image.name + Date.now().toString();
+        updatedImages.push(uniqueId);
+        const imageRef = ref(storage, `rooms/${id}/${uniqueId}`);
+        uploadBytes(imageRef, image);
+      });
+
+      newData = { ...newData, images: updatedImages};
+    }
+
     if (Object.keys(newData).length === 0) {
       alert('No changes were made!');
       return;
@@ -154,7 +179,7 @@ export default function ModifyRoom({ id }: { id: string }) {
           console.error('Error deleting image:', error);
         }
       })
-      
+
       deleteObject(imageRef).then(() => {
         alert('Image deleted successfully!');
         router.reload();
@@ -167,69 +192,69 @@ export default function ModifyRoom({ id }: { id: string }) {
       <>
         <h1>{'Room name'}</h1>
         <input
+          className={styles.input}
           type="text"
           defaultValue={roomOriginalData.current?.name}
-          className={styles.input}
           onChange={(e) => (roomNameRef.current = e.target.value)}
         />
         <h1>{'Room number of beds'}</h1>
         <input
+          className={styles.input}
           type="number"
           defaultValue={roomOriginalData.current?.beds}
-          className={styles.input}
           onChange={(e) => (roomNoBedsRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room price'}</h1>
         <input
+          className={styles.input}
           type="number"
           defaultValue={roomOriginalData.current?.pricePerNight}
-          className={styles.input}
           onChange={(e) => (roomPriceRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room benefits'}</h1>
         <input
+          className={styles.input}
           type="text"
           defaultValue={roomOriginalData.current?.benefits}
-          className={styles.input}
           onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
-        {(roomData.current?.images && roomData.current?.images.length > 0) ? (
-        <div className={styles.imageContainer}>
-          <button className={styles.card} onClick={handlePreviousImage}>
-            {'Previous'}
-          </button>
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <img
-              className={styles.image}
-              src={imageURLs.current[currentImageIndex]}
-              onMouseEnter={() => setShowDeleteButton(true)}
-              onMouseLeave={() => setShowDeleteButton(false)}
-            />
-            {showDeleteButton && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 1,
-                }}
-              >
-                <button onClick={handleDeleteImage}
-                className={styles.card}
-                onMouseEnter={() => setShowDeleteButton(true)}>
-                  {'Delete'}
-                </button>
-              </div>
-            )}
+        {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
+          <div className={styles.imageContainer}>
+            <button className={styles.card} onClick={handlePreviousImage}>
+              {'Previous'}
+            </button>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <img
+                className={styles.image}
+                src={imageURLs.current[currentImageIndex]}
+                onMouseEnter={() => setShowDeleteButton(true)}
+                onMouseLeave={() => setShowDeleteButton(false)}
+              />
+              {showDeleteButton && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 1,
+                  }}
+                >
+                  <button onClick={handleDeleteImage}
+                  className={styles.card}
+                  onMouseEnter={() => setShowDeleteButton(true)}>
+                    {'Delete'}
+                  </button>
+                </div>
+              )}
+            </div>
+            <button className={styles.card} onClick={handleNextImage}>
+              {'Next'}
+            </button>
           </div>
-          <button className={styles.card} onClick={handleNextImage}>
-            {'Next'}
-          </button>
-        </div>
-        ) : (
-          <h1>{'No images available.'}</h1>
-        )}
+          ) : (
+            <h1>{'No images available.'}</h1>
+          )}
         <input
             type="file"
             onChange={(e) => {
