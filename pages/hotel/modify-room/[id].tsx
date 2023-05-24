@@ -1,4 +1,4 @@
-import { ref, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -22,6 +22,8 @@ export default function ModifyRoom({ id }: { id: string }) {
   const images = useRef<File[]>([]);
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const imageURLs = useRef<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -44,12 +46,23 @@ export default function ModifyRoom({ id }: { id: string }) {
                 hotelData.current = data;
                 hotelOwnerId.current = data.ownerId ?? '';
               })
-              .catch((error) => {
-                console.log('Error getting hotel:', error);
-              })
-              .finally(() => {
+          }
+
+          if (roomData.current?.images && roomData.current?.images.length > 0) {
+            const imageUrlsPromises = roomData.current?.images.map((imageId) => {
+              const imageRef = ref(storage, `rooms/${id}/${imageId}`);
+              return getDownloadURL(imageRef);
+            });
+    
+            Promise.all(imageUrlsPromises)
+              .then((imageUrls) => {
+                imageURLs.current = imageUrls;
                 setIsLoading(false);
-              });
+              })
+              .catch((error) => {
+                console.error('Error getting image URLs', error);
+                setIsLoading(false);
+              })
           } else {
             setIsLoading(false);
           }
@@ -139,6 +152,18 @@ export default function ModifyRoom({ id }: { id: string }) {
   };
 
   const renderPage = () => {
+    const handlePreviousImage = () => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === 0 ? imageURLs.current.length - 1 : prevIndex - 1
+      );
+    };
+  
+    const handleNextImage = () => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === imageURLs.current.length - 1 ? 0 : prevIndex + 1
+      );
+    };
+
     return (
       <>
         <h1>{'Room name'}</h1>
@@ -165,6 +190,18 @@ export default function ModifyRoom({ id }: { id: string }) {
           defaultValue={roomOriginalData.current?.benefits}
           onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
+        <div className={styles.imageContainer}>
+          <button className={styles.previousButton} onClick={handlePreviousImage}>
+            Previous
+          </button>
+          <img
+            className={styles.image}
+            src={imageURLs.current[currentImageIndex]}
+          />
+          <button className={styles.nextButton} onClick={handleNextImage}>
+            Next
+          </button>
+        </div>
         <input
             type="file"
             onChange={(e) => {
