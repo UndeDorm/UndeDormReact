@@ -8,7 +8,6 @@ import {
   editReservationRequest,
   getHotels,
   getReservationRequestsByOwner,
-  getReservationRequestsByUser,
   getRooms,
 } from '../src/firebase/database';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -19,9 +18,7 @@ export default function Profile() {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isDataReady, setIsDataReady] = useState<boolean>(false); // New state to track if data is ready
 
-  const sentRequestsData = useRef<ReservationRequest[]>([]);
   const receivedRequestsData = useRef<ReservationRequest[]>([]);
   const roomsData = useRef<Room[]>([]);
   const hotelsData = useRef<Hotel[]>([]);
@@ -34,179 +31,32 @@ export default function Profile() {
       if (state.user?.isOwner) {
         getReservationRequestsByOwner(state.user?.id ?? '')
           .then((data) => {
-            receivedRequestsData.current =
-              data?.filter((request) => request.requestStatus !== 'accepted') ??
-              [];
-          })
-          .catch((error) => {
-            console.error('Error getting reservation requests:', error);
-          });
-      }
-      getReservationRequestsByUser(state.user?.id ?? '')
-        .then((data) => {
-          sentRequestsData.current =
-            data?.filter((request) => request.requestStatus !== 'accepted') ??
-            [];
-          if (sentRequestsData.current) {
+            receivedRequestsData.current = data ?? [];
             Promise.all([getRooms(), getHotels()]) // Fetch rooms and hotels simultaneously
               .then(([rooms, hotels]) => {
                 roomsData.current = rooms ?? [];
                 hotelsData.current = hotels ?? [];
-                setIsDataReady(true); // Data is ready, update the state
               })
               .catch((error) => {
                 console.error('Error getting rooms and hotels:', error);
               })
-              .finally(() => setIsLoading(false));
-          } else {
+              .finally(() => {
+                setIsLoading(false);
+              });
+          })
+          .catch((error) => {
+            console.error('Error getting reservation requests:', error);
             setIsLoading(false);
-          }
-        })
-        .catch((error) => {
-          console.error('Error getting reservation requests:', error);
-          setIsLoading(false);
-        });
+          });
+      } else {
+        setIsLoading(false);
+      }
     }
   }, [router, state]);
 
   const convertMillisecondsToDate = (milliseconds: number) => {
     const dateObject = new Date(milliseconds);
     return dateObject.toLocaleString().split(',')[0];
-  };
-
-  const renderSentRequests = () => {
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
-
-    if (!isDataReady) {
-      return <p>Waiting for data...</p>;
-    }
-    return (
-      <>
-        {sentRequestsData.current.map((request) => {
-          const room = roomsData.current.find(
-            (room) => room.id === request.roomId
-          );
-          const hotel = hotelsData.current.find(
-            (hotel) => hotel.id === room?.hotelId
-          );
-
-          if (!room || !hotel) {
-            // Data not available yet, return null or a placeholder if desired
-            return null;
-          }
-
-          return (
-            <div key={request.id} className={styles.card}>
-              <h3>
-                {hotel.name}: {room.name}
-              </h3>
-              <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
-              <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
-              <p>📍Location: {hotel.location}</p>
-              {request.requestStatus === 'pending' ? (
-                <>
-                  <p className={styles.highlight}>
-                    Status: {request.requestStatus}
-                  </p>
-                  <button onClick={() => handleCancelRequest(request.id)}>
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className={styles.redText}>
-                    Status: {request.requestStatus}
-                  </p>
-                  <button onClick={() => handleDeleteRequest(request.id)}>
-                    Delete
-                  </button>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </>
-    );
-  };
-
-  const renderReceivedRequests = () => {
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
-
-    if (!isDataReady) {
-      return <p>Waiting for data...</p>;
-    }
-    return (
-      <>
-        {receivedRequestsData.current.map((request) => {
-          const room = roomsData.current.find(
-            (room) => room.id === request.roomId
-          );
-          const hotel = hotelsData.current.find(
-            (hotel) => hotel.id === room?.hotelId
-          );
-
-          if (!room || !hotel) {
-            // Data not available yet, return null or a placeholder if desired
-            return null;
-          }
-
-          return (
-            <div key={request.id} className={styles.card}>
-              <h3>
-                {hotel.name}: {room.name}
-              </h3>
-              <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
-              <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
-              <p>📍Location: {hotel.location}</p>
-              {request.requestStatus === 'pending' ? (
-                <>
-                  <p className={styles.highlight}>
-                    Status: {request.requestStatus}
-                  </p>
-                  <button onClick={() => handleAcceptRequest(request.id)}>
-                    Accept
-                  </button>
-                  <button onClick={() => handleDeclineRequest(request.id)}>
-                    Decline
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className={styles.redText}>
-                    Status: {request.requestStatus}
-                  </p>
-                  <button onClick={() => handleDeleteRequest(request.id)}>
-                    Delete
-                  </button>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </>
-    );
-  };
-
-  const handleCancelRequest = async (reqId: any) => {
-    const onSuccess = () => {
-      console.log('Reservation cancelled!');
-      router.reload();
-    };
-    const onFailure = (error: any) => {
-      console.log('Error cancelling reservation!');
-    };
-    let newData = {};
-    newData = { ...newData, requestStatus: 'cancelled' };
-    editReservationRequest({
-      requestId: reqId,
-      newData,
-      onSuccess,
-      onFailure,
-    });
   };
 
   const handleAcceptRequest = async (reqId: any) => {
@@ -256,6 +106,94 @@ export default function Profile() {
     }
   };
 
+  const handleCancelRequest = async (reqId: any) => {
+    const onSuccess = () => {
+      console.log('Reservation cancelled!');
+      router.reload();
+    };
+    const onFailure = (error: any) => {
+      console.log('Error cancelling reservation!');
+    };
+    let newData = {};
+    newData = { ...newData, requestStatus: 'cancelled' };
+    editReservationRequest({
+      requestId: reqId,
+      newData,
+      onSuccess,
+      onFailure,
+    });
+  };
+
+  const renderReceivedRequests = () => {
+    if (isLoading) {
+      return <p>{'Loading...'}</p>;
+    }
+
+    return (
+      <>
+        {receivedRequestsData.current.map((request) => {
+          const room = roomsData.current.find(
+            (room) => room.id === request.roomId
+          );
+          const hotel = hotelsData.current.find(
+            (hotel) => hotel.id === room?.hotelId
+          );
+
+          if (!room || !hotel) {
+            // Data not available yet, return null or a placeholder if desired
+            return null;
+          }
+
+          return (
+            <div key={request.id} className={styles.card}>
+              <h3>
+                {hotel.name}: {room.name}
+              </h3>
+              <p>{`📅Arrival: ${convertMillisecondsToDate(
+                request.startDate
+              )}`}</p>
+              <p>{`📅Departure: ${convertMillisecondsToDate(
+                request.endDate
+              )}`}</p>
+              <p>{`📍Location: ${hotel.location}`}</p>
+              {request.requestStatus === 'pending' ? (
+                <>
+                  <p className={styles.highlight}>
+                    {`Status: ${request.requestStatus}`}
+                  </p>
+                  <button onClick={() => handleAcceptRequest(request.id)}>
+                    {'Accept'}
+                  </button>
+                  <button onClick={() => handleDeclineRequest(request.id)}>
+                    {'Decline'}
+                  </button>
+                </>
+              ) : request.requestStatus === 'accepted' ? (
+                <>
+                  <p className={styles.greenText}>
+                    Status: {request.requestStatus}
+                  </p>
+                  <button onClick={() => handleCancelRequest(request.id)}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className={styles.redText}>
+                    {`Status: ${request.requestStatus}`}
+                  </p>
+                  <button onClick={() => handleDeleteRequest(request.id)}>
+                    {'Delete'}
+                  </button>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -265,21 +203,13 @@ export default function Profile() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Requests</h1>
+        <h1 className={styles.title}>{'Requests'}</h1>
         {isLoading ? (
-          <p>Loading...</p>
+          <p>{'Loading...'}</p>
         ) : (
           <>
-            {state.user?.isOwner ? (
-              <>
-                <h1>Sent requests:</h1>
-                {renderSentRequests()}
-                <h1>Received requests:</h1>
-                {renderReceivedRequests()}
-              </>
-            ) : (
-              renderSentRequests()
-            )}
+            <h1>{'Received requests:'}</h1>
+            {renderReceivedRequests()}
           </>
         )}
       </main>
