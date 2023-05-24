@@ -22,7 +22,6 @@ export default function Profile() {
   const [isDataReady, setIsDataReady] = useState<boolean>(false); // New state to track if data is ready
 
   const myReservations = useRef<ReservationRequest[]>([]);
-  const receivedReservations = useRef<ReservationRequest[]>([]);
   const roomsData = useRef<Room[]>([]);
   const hotelsData = useRef<Hotel[]>([]);
 
@@ -31,22 +30,9 @@ export default function Profile() {
       console.log('You are not logged in!');
       router.push('/');
     } else {
-      if (state.user?.isOwner) {
-        getReservationRequestsByOwner(state.user?.id ?? '')
-          .then((data) => {
-            receivedReservations.current =
-              data?.filter((request) => request.requestStatus !== 'pending') ??
-              [];
-          })
-          .catch((error) => {
-            console.error('Error getting reservation requests:', error);
-          });
-      }
       getReservationRequestsByUser(state.user?.id ?? '')
         .then((data) => {
-          myReservations.current =
-            data?.filter((request) => request.requestStatus !== 'pending') ??
-            [];
+          myReservations.current = data ?? [];
           if (myReservations.current) {
             Promise.all([getRooms(), getHotels()]) // Fetch rooms and hotels simultaneously
               .then(([rooms, hotels]) => {
@@ -114,57 +100,9 @@ export default function Profile() {
                     Cancel
                   </button>
                 </>
-              ) : (
+              ) : request.requestStatus === 'pending' ? (
                 <>
-                  <p className={styles.redText}>
-                    Status: {request.requestStatus}
-                  </p>
-                  <button onClick={() => handleDeleteRequest(request.id)}>
-                    Delete
-                  </button>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </>
-    );
-  };
-
-  const renderReceivedReservations = () => {
-    if (isLoading) {
-      return <p>Loading...</p>;
-    }
-
-    if (!isDataReady) {
-      return <p>Waiting for data...</p>;
-    }
-    return (
-      <>
-        {receivedReservations.current.map((request) => {
-          const room = roomsData.current.find(
-            (room) => room.id === request.roomId
-          );
-          const hotel = hotelsData.current.find(
-            (hotel) => hotel.id === room?.hotelId
-          );
-
-          if (!room || !hotel) {
-            // Data not available yet, return null or a placeholder if desired
-            return null;
-          }
-
-          return (
-            <div key={request.id} className={styles.card}>
-              <h3>
-                {hotel.name}: {room.name}
-              </h3>
-              <p>📅Arrival: {convertMillisecondsToDate(request.startDate)}</p>
-              <p>📅Departure: {convertMillisecondsToDate(request.endDate)}</p>
-              <p>📍Location: {hotel.location}</p>
-              {request.requestStatus === 'accepted' ? (
-                <>
-                  <p className={styles.greenText}>
+                  <p className={styles.highlight}>
                     Status: {request.requestStatus}
                   </p>
                   <button onClick={() => handleCancelRequest(request.id)}>
@@ -231,16 +169,8 @@ export default function Profile() {
           <p>Loading...</p>
         ) : (
           <>
-            {state.user?.isOwner ? (
-              <>
-                <h1>My reservations:</h1>
-                {renderMyReservations()}
-                <h1>Received reservations:</h1>
-                {renderReceivedReservations()}
-              </>
-            ) : (
-              renderMyReservations()
-            )}
+            <h1>My reservations:</h1>
+            {renderMyReservations()}
           </>
         )}
       </main>
