@@ -176,6 +176,7 @@ export const addRoom = ({
     beds: room.beds,
     hotelId: room.hotelId,
     id: room.id,
+    images: room.images,
   })
     .then(onSuccess)
     .catch(onFailure);

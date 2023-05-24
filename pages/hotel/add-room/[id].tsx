@@ -1,8 +1,9 @@
 import { collection, doc, getDoc } from 'firebase/firestore';
+import { ref, uploadBytes } from 'firebase/storage';
 import router from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { addRoom, getHotel } from '../../../src/firebase/database';
-import { firebaseDb } from '../../../src/firebase/firebase';
+import { firebaseDb, storage } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
 import { Hotel, Room } from '../../../src/utils/types';
 import styles from '../../../styles/Home.module.css';
@@ -16,6 +17,9 @@ export default function AddRoomPage({ id }: { id: string }) {
   const hotelOwnerId = useRef<string>();
   const hotelData = useRef<Hotel>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const images = useRef<File[]>([]);
+  const uniqueImages = useRef<string[]>([]);
+  const [imageUpload, setImageUpload] = useState<File | null>(null);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -35,15 +39,34 @@ export default function AddRoomPage({ id }: { id: string }) {
     }
   }, [id, state.isUserLoggedIn]);
 
+  const addImage = () => {
+    if (imageUpload == null) {
+      alert("Please select an image!");
+      return;
+    }
+    images.current.push(imageUpload);
+    alert("Image uploaded successfully!");
+  };
+
   const addRoomToDatabase = () => {
     const myCollection = collection(firebaseDb, 'rooms');
     const myDocRef = doc(myCollection);
+    const roomId = myDocRef.id;
+
+    images.current.forEach((image) => {
+      const uniqueId = image.name + Date.now().toString();
+      uniqueImages.current.push(uniqueId);
+      const imageRef = ref(storage, `rooms/${roomId}/${uniqueId}`);
+      uploadBytes(imageRef, image);
+    });
+
     const room: Room = {
-      id: myDocRef.id,
+      id: roomId,
       name: roomName.current,
       benefits: benefits.current ?? '',
       pricePerNight: price.current ?? 0,
       beds: noBeds.current ?? 0,
+      images: uniqueImages.current,
       hotelId: id,
     };
 
@@ -83,9 +106,22 @@ export default function AddRoomPage({ id }: { id: string }) {
           className={styles.input}
           onChange={(e) => (benefits.current = e.target.value)}
         />
-        <button className={styles.card} onClick={addRoomToDatabase}>
-          Add Room
-        </button>
+        <input
+        type="file"
+        onChange={(e) => {
+          setImageUpload(e.target.files?.[0] ?? null);
+        }}
+        className={styles.input}
+        />
+        <div className={styles.grid}>
+          <button onClick={addImage} className={styles.card}>
+            {'Upload Image'}
+          </button>
+
+          <button className={styles.card} onClick={addRoomToDatabase}>
+            {'Add Room'}
+          </button>
+        </div>
       </>
     );
   };
