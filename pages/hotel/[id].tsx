@@ -14,7 +14,7 @@ import { firebaseDb, storage } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
 import { Hotel, Room } from '../../src/utils/types';
-import { ref, uploadBytes } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -49,8 +49,25 @@ export default function HotelPage({ id }: { id: string }) {
               .then((data) => {
                 roomsData.current =
                   data?.filter((room) => room.hotelId === id) ?? [];
-
-                console.log('TEST', roomsData.current);
+                  
+                if (hotelData.current?.images && hotelData.current?.images.length > 0) {
+                  const imageUrlsPromises = hotelData.current?.images.map((imageId) => {
+                    const imageRef = ref(storage, `hotels/${id}/${imageId}`);
+                    return getDownloadURL(imageRef);
+                  });
+          
+                  Promise.all(imageUrlsPromises)
+                    .then((imageUrls) => {
+                      // Do something with the image URLs, e.g., store them in a variable or state
+                      console.log('Image URLs:', imageUrls);
+                    })
+                    .catch((error) => {
+                      console.error('Error getting image URLs', error);
+                    })
+                    .finally(() => setIsLoading(false));
+                } else {
+                  setIsLoading(false);
+                }
               })
               .catch((error) => {
                 console.error('Error getting rooms', error);
