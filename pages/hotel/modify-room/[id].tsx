@@ -218,17 +218,19 @@ export default function ModifyRoom({ id }: { id: string }) {
           defaultValue={roomOriginalData.current?.benefits}
           onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
-        {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
+        {(roomData.current?.images && roomData.current?.images.length > 0) ? (
           <div className={styles.imageContainer}>
             <button className={styles.card} onClick={handlePreviousImage}>
               {'Previous'}
             </button>
             <div style={{ position: 'relative', display: 'inline-block' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className={styles.image}
                 src={imageURLs.current[currentImageIndex]}
                 onMouseEnter={() => setShowDeleteButton(true)}
                 onMouseLeave={() => setShowDeleteButton(false)}
+                alt={'Room image'}
               />
               {showDeleteButton && (
                 <div
