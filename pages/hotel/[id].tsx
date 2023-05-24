@@ -46,8 +46,6 @@ export default function HotelPage({ id }: { id: string }) {
               .then((data) => {
                 roomsData.current =
                   data?.filter((room) => room.hotelId === id) ?? [];
-
-                console.log('TEST', roomsData.current);
               })
               .catch((error) => {
                 console.error('Error getting rooms', error);
