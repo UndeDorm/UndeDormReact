@@ -1,4 +1,3 @@
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -22,9 +21,6 @@ export default function ModifyRoom({ id }: { id: string }) {
   const images = useRef<File[]>([]);
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const imageURLs = useRef<string[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showDeleteButton, setShowDeleteButton] = useState(false);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -47,23 +43,12 @@ export default function ModifyRoom({ id }: { id: string }) {
                 hotelData.current = data;
                 hotelOwnerId.current = data.ownerId ?? '';
               })
-          }
-
-          if (roomData.current?.images && roomData.current?.images.length > 0) {
-            const imageUrlsPromises = roomData.current?.images.map((imageId) => {
-              const imageRef = ref(storage, `rooms/${id}/${imageId}`);
-              return getDownloadURL(imageRef);
-            });
-    
-            Promise.all(imageUrlsPromises)
-              .then((imageUrls) => {
-                imageURLs.current = imageUrls;
-                setIsLoading(false);
-              })
               .catch((error) => {
-                console.error('Error getting image URLs', error);
-                setIsLoading(false);
+                console.log('Error getting hotel:', error);
               })
+              .finally(() => {
+                setIsLoading(false);
+              });
           } else {
             setIsLoading(false);
           }
@@ -187,7 +172,6 @@ export default function ModifyRoom({ id }: { id: string }) {
         console.error('Error deleting image:', error);
       });
     }
-
     return (
       <>
         <h1>{'Room name'}</h1>
@@ -288,7 +272,10 @@ export default function ModifyRoom({ id }: { id: string }) {
             <h1 className={styles.title}>{'Loading...'}</h1>
           ) : (
             <>
-              {renderPage()}
+              {state.user?.isOwner &&
+              state.user.id === hotelData.current?.ownerId
+                ? renderPage()
+                : router.push('/')}
             </>
           )}
         </>
