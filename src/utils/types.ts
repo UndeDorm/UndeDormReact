@@ -29,7 +29,7 @@ export interface ReservationRequest {
   id: string;
   requestStatus: ReservationStatus;
   roomId: string;
-  hotelId: string;
+  ownerId: string;
   userId: string;
   startDate: number;
   endDate: number;
@@ -48,4 +48,4 @@ export interface Message {
   text: string;
 }
 
-export type ReservationStatus = 'pending' | 'accepted' | 'rejected';
+export type ReservationStatus = 'pending' | 'accepted' | 'declined' | 'canceled';

@@ -17,8 +17,8 @@ export default function Profile() {
 
   const firstNameRef = useRef<string>(state.user?.firstName ?? '');
   const lastNameRef = useRef<string>(state.user?.lastName ?? '');
-  const dateOfBirthRef = useRef<string>(
-    state.user?.dateOfBirth?.toString() ?? ''
+  const dateOfBirthRef = useRef<number>(
+    state.user?.dateOfBirth ?? new Date().getTime()
   );
 
   const onBecomeOwner = () => {
@@ -66,9 +66,7 @@ export default function Profile() {
       newData = { ...newData, lastName: lastNameRef.current };
     }
 
-    if (
-      new Date(dateOfBirthRef.current).getTime() !== state.user?.dateOfBirth
-    ) {
+    if (dateOfBirthRef.current !== state.user?.dateOfBirth) {
       newData = {
         ...newData,
         dateOfBirth: new Date(dateOfBirthRef.current).getTime(),
@@ -136,7 +134,7 @@ export default function Profile() {
             .toISOString()
             .slice(0, 10)}
           onChange={(e) => {
-            dateOfBirthRef.current = e.target.value;
+            dateOfBirthRef.current = new Date(e.target.value).getTime();
           }}
         />
         <button className={styles.card} onClick={onBecomeOwner}>
