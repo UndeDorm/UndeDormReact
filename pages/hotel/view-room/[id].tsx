@@ -45,31 +45,34 @@ export default function ModifyRoom({ id }: { id: string }) {
     }
   }, [id, state, router, hotelId]);
 
+  const handleRequest = () => {
+    router.push(`/request/create-request/${id}`);
+  };
+
   const renderPage = () => {
     return (
-      <main className={styles.main}>
-        {
-          <main className={styles.main}>
-            <h1>{'Room name'}</h1>
-            <h2>{roomData.current?.name}</h2>
+      <>
+        <h1>{'Room name'}</h1>
+        <h2>{roomData.current?.name}</h2>
 
-            <h2>
-              {'Room number of beds: '}
-              {roomData.current?.beds}
-            </h2>
+        <h2>
+          {'Room number of beds: '}
+          {roomData.current?.beds}
+        </h2>
 
-            <h2>
-              {'Price per night: '}
-              {roomData.current?.pricePerNight}
-            </h2>
+        <h2>
+          {'Price per night: '}
+          {roomData.current?.pricePerNight}
+        </h2>
 
-            <h2>
-              {'Room benefits: '}
-              {roomData.current?.benefits}
-            </h2>
-          </main>
-        }
-      </main>
+        <h2>
+          {'Room benefits: '}
+          {roomData.current?.benefits}
+        </h2>
+        <button className={styles.card} onClick={handleRequest}>
+          Make reservation
+        </button>
+      </>
     );
   };
 

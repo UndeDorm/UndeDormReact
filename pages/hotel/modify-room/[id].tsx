@@ -114,7 +114,7 @@ export default function ModifyRoom({ id }: { id: string }) {
 
   const renderPage = () => {
     return (
-      <main className={styles.main}>
+      <>
         <h1>{'Room name'}</h1>
         <input
           type="text"
@@ -140,7 +140,7 @@ export default function ModifyRoom({ id }: { id: string }) {
           onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
         <button onClick={onSave}>Save</button>
-      </main>
+      </>
     );
   };
 
