@@ -1,4 +1,4 @@
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -24,6 +24,7 @@ export default function ModifyRoom({ id }: { id: string }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const imageURLs = useRef<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -164,44 +165,96 @@ export default function ModifyRoom({ id }: { id: string }) {
       );
     };
 
+    const handleDeleteImage = () => {
+      const imageId = roomData.current?.images[currentImageIndex];
+      const imageRef = ref(storage, `rooms/${id}/${imageId}`);
+      const updatedImages = [...roomData.current?.images || []];
+      updatedImages.splice(currentImageIndex, 1);
+
+      editRoom({
+        roomId: id,
+        newData: { images: updatedImages },
+        onSuccess: () => {},
+        onFailure: (error) => {
+          console.error('Error deleting image:', error);
+        }
+      })
+      
+      deleteObject(imageRef).then(() => {
+        alert('Image deleted successfully!');
+        router.reload();
+      }).catch((error) => {
+        console.error('Error deleting image:', error);
+      });
+    }
+
     return (
       <>
         <h1>{'Room name'}</h1>
         <input
           type="text"
           defaultValue={roomOriginalData.current?.name}
+          className={styles.input}
           onChange={(e) => (roomNameRef.current = e.target.value)}
         />
         <h1>{'Room number of beds'}</h1>
         <input
           type="number"
           defaultValue={roomOriginalData.current?.beds}
+          className={styles.input}
           onChange={(e) => (roomNoBedsRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room price'}</h1>
         <input
           type="number"
           defaultValue={roomOriginalData.current?.pricePerNight}
+          className={styles.input}
           onChange={(e) => (roomPriceRef.current = parseInt(e.target.value))}
         />
         <h1>{'Room benefits'}</h1>
         <input
           type="text"
           defaultValue={roomOriginalData.current?.benefits}
+          className={styles.input}
           onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
+        {(roomData.current?.images && roomData.current?.images.length > 0) ? (
         <div className={styles.imageContainer}>
-          <button className={styles.previousButton} onClick={handlePreviousImage}>
-            Previous
+          <button className={styles.card} onClick={handlePreviousImage}>
+            {'Previous'}
           </button>
-          <img
-            className={styles.image}
-            src={imageURLs.current[currentImageIndex]}
-          />
-          <button className={styles.nextButton} onClick={handleNextImage}>
-            Next
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <img
+              className={styles.image}
+              src={imageURLs.current[currentImageIndex]}
+              onMouseEnter={() => setShowDeleteButton(true)}
+              onMouseLeave={() => setShowDeleteButton(false)}
+            />
+            {showDeleteButton && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 1,
+                }}
+              >
+                <button onClick={handleDeleteImage}
+                className={styles.card}
+                onMouseEnter={() => setShowDeleteButton(true)}>
+                  {'Delete'}
+                </button>
+              </div>
+            )}
+          </div>
+          <button className={styles.card} onClick={handleNextImage}>
+            {'Next'}
           </button>
         </div>
+        ) : (
+          <h1>{'No images available.'}</h1>
+        )}
         <input
             type="file"
             onChange={(e) => {
@@ -213,7 +266,7 @@ export default function ModifyRoom({ id }: { id: string }) {
         <button onClick={addImage} className={styles.card}>
           {'Upload Image'}
         </button>
-        <button onClick={onSave}>
+        <button onClick={onSave} className={styles.card}>
           {'Save'}
         </button>
       </>
@@ -235,10 +288,7 @@ export default function ModifyRoom({ id }: { id: string }) {
             <h1 className={styles.title}>{'Loading...'}</h1>
           ) : (
             <>
-              {state.user?.isOwner &&
-              state.user.id === hotelData.current?.ownerId
-                ? renderPage()
-                : router.push('/')}
+              {renderPage()}
             </>
           )}
         </>

@@ -14,7 +14,7 @@ import { firebaseDb, storage } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
 import { Hotel, Room } from '../../src/utils/types';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -33,6 +33,7 @@ export default function HotelPage({ id }: { id: string }) {
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -197,6 +198,28 @@ export default function HotelPage({ id }: { id: string }) {
       );
     };
 
+    const handleDeleteImage = () => {
+      console.log('deleteImage');
+      const imageId = hotelData.current?.images[currentImageIndex];
+      const imageRef = ref(storage, `hotels/${id}/${imageId}`);
+      const updatedImages = [...hotelData.current?.images || []];
+      updatedImages.splice(currentImageIndex, 1);
+      editHotel({
+        hotelId: id,
+        newData: { images: updatedImages },
+        onSuccess: () => {},
+        onFailure: (error) => {
+          console.error('Error deleting image:', error);
+        },
+      });
+      deleteObject(imageRef).then(() => {
+        alert('Image deleted successfully!');
+        router.reload();
+      }).catch((error) => {
+        console.error('Error deleting image:', error);
+      });
+    }
+
     return (
       <>
         <Head>
@@ -227,18 +250,43 @@ export default function HotelPage({ id }: { id: string }) {
             defaultValue={hotelDescriptionRef.current}
             onChange={(e) => (hotelDescriptionRef.current = e.target.value)}
           />
+          {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
           <div className={styles.imageContainer}>
-            <button className={styles.previousButton} onClick={handlePreviousImage}>
-              Previous
+            <button className={styles.card} onClick={handlePreviousImage}>
+              {'Previous'}
             </button>
-            <img
-              className={styles.image}
-              src={imageURLs.current[currentImageIndex]}
-            />
-            <button className={styles.nextButton} onClick={handleNextImage}>
-              Next
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <img
+                className={styles.image}
+                src={imageURLs.current[currentImageIndex]}
+                onMouseEnter={() => setShowDeleteButton(true)}
+                onMouseLeave={() => setShowDeleteButton(false)}
+              />
+              {showDeleteButton && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 1,
+                  }}
+                >
+                  <button onClick={handleDeleteImage}
+                  className={styles.card}
+                  onMouseEnter={() => setShowDeleteButton(true)}>
+                    {'Delete'}
+                  </button>
+                </div>
+              )}
+            </div>
+            <button className={styles.card} onClick={handleNextImage}>
+              {'Next'}
             </button>
           </div>
+          ) : (
+            <h1>{'No images available.'}</h1>
+          )}
           <input
             type="file"
             onChange={(e) => {
@@ -324,6 +372,7 @@ export default function HotelPage({ id }: { id: string }) {
             Description: {hotelData.current?.description}
           </p>
 
+          {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
           <div className={styles.imageContainer}>
             <button className={styles.previousButton} onClick={handlePreviousImage}>
               Previous
@@ -336,6 +385,9 @@ export default function HotelPage({ id }: { id: string }) {
               Next
             </button>
           </div>
+          ) : (
+            <h1>{'No images available.'}</h1>
+          )}
           <table className={styles.table}>
             <thead>
               <tr>

@@ -103,6 +103,7 @@ export default function ModifyRoom({ id }: { id: string }) {
           {roomData.current?.benefits}
         </h2>
 
+        {(roomData.current?.images && roomData.current?.images.length > 0) ? (
         <div className={styles.imageContainer}>
           <button className={styles.previousButton} onClick={handlePreviousImage}>
             Previous
@@ -115,6 +116,9 @@ export default function ModifyRoom({ id }: { id: string }) {
             Next
           </button>
         </div>
+        ) : (
+          <h2>{'No images available.'}</h2>
+        )}
         <button className={styles.card} onClick={handleRequest}>
           Make reservation
         </button>
