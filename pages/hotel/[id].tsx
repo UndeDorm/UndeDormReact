@@ -10,10 +10,11 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { editHotel, getHotel, getRooms } from '../../src/firebase/database';
-import { firebaseDb } from '../../src/firebase/firebase';
+import { firebaseDb, storage } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
 import { Hotel, Room } from '../../src/utils/types';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -27,7 +28,13 @@ export default function HotelPage({ id }: { id: string }) {
   const hotelDescriptionRef = useRef<string>(
     hotelData.current?.description ?? ''
   );
+  const images = useRef<File[]>([]);
+  const imageURLs = useRef<string[]>([]);
+  const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
+
   useEffect(() => {
     if (!state.isUserLoggedIn) {
       console.log('You are not logged in!');
@@ -46,11 +53,30 @@ export default function HotelPage({ id }: { id: string }) {
               .then((data) => {
                 roomsData.current =
                   data?.filter((room) => room.hotelId === id) ?? [];
+                  
+                if (hotelData.current?.images && hotelData.current?.images.length > 0) {
+                  const imageUrlsPromises = hotelData.current?.images.map((imageId) => {
+                    const imageRef = ref(storage, `hotels/${id}/${imageId}`);
+                    return getDownloadURL(imageRef);
+                  });
+          
+                  Promise.all(imageUrlsPromises)
+                    .then((imageUrls) => {
+                      imageURLs.current = imageUrls;
+                      setIsLoading(false);
+                    })
+                    .catch((error) => {
+                      console.error('Error getting image URLs', error);
+                      setIsLoading(false);
+                    })
+                } else {
+                  setIsLoading(false);
+                }
               })
               .catch((error) => {
                 console.error('Error getting rooms', error);
+                setIsLoading(false);
               })
-              .finally(() => setIsLoading(false));
           } else {
             setIsLoading(false);
           }
@@ -82,6 +108,15 @@ export default function HotelPage({ id }: { id: string }) {
 
   const handleViewRoom = async (roomId: string) => {
     router.push(`/hotel/view-room/${roomId}`);
+  };
+
+  const addImage = () => {
+    if (imageUpload == null) {
+      alert("Please select an image!");
+      return;
+    }
+    images.current.push(imageUpload);
+    alert("Image uploaded successfully!");
   };
 
   const onSave = () => {
@@ -126,6 +161,19 @@ export default function HotelPage({ id }: { id: string }) {
       newData = { ...newData, description: hotelDescriptionRef.current };
     }
 
+    if (images.current.length > 0) {
+      const updatedImages = [...originalHotelData.current?.images || []];
+
+      images.current.forEach((image) => {
+        const uniqueId = image.name + Date.now().toString();
+        updatedImages.push(uniqueId);
+        const imageRef = ref(storage, `hotels/${id}/${uniqueId}`);
+        uploadBytes(imageRef, image);
+      });
+
+      newData = { ...newData, images: updatedImages};
+    }
+
     if (Object.keys(newData).length === 0) {
       alert('No changes were made!');
       return;
@@ -140,6 +188,40 @@ export default function HotelPage({ id }: { id: string }) {
   };
 
   const renderOwner = () => {
+    const handlePreviousImage = () => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === 0 ? imageURLs.current.length - 1 : prevIndex - 1
+      );
+    };
+  
+    const handleNextImage = () => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === imageURLs.current.length - 1 ? 0 : prevIndex + 1
+      );
+    };
+
+    const handleDeleteImage = () => {
+      console.log('deleteImage');
+      const imageId = hotelData.current?.images[currentImageIndex];
+      const imageRef = ref(storage, `hotels/${id}/${imageId}`);
+      const updatedImages = [...hotelData.current?.images || []];
+      updatedImages.splice(currentImageIndex, 1);
+      editHotel({
+        hotelId: id,
+        newData: { images: updatedImages },
+        onSuccess: () => {},
+        onFailure: (error) => {
+          console.error('Error deleting image:', error);
+        },
+      });
+      deleteObject(imageRef).then(() => {
+        alert('Image deleted successfully!');
+        router.reload();
+      }).catch((error) => {
+        console.error('Error deleting image:', error);
+      });
+    }
+
     return (
       <>
         <Head>
@@ -170,6 +252,56 @@ export default function HotelPage({ id }: { id: string }) {
             defaultValue={hotelDescriptionRef.current}
             onChange={(e) => (hotelDescriptionRef.current = e.target.value)}
           />
+
+          {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
+          <div className={styles.imageContainer}>
+            <button className={styles.card} onClick={handlePreviousImage}>
+              {'Previous'}
+            </button>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <img
+                className={styles.image}
+                src={imageURLs.current[currentImageIndex]}
+                onMouseEnter={() => setShowDeleteButton(true)}
+                onMouseLeave={() => setShowDeleteButton(false)}
+              />
+              {showDeleteButton && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 1,
+                  }}
+                >
+                  <button onClick={handleDeleteImage}
+                  className={styles.card}
+                  onMouseEnter={() => setShowDeleteButton(true)}>
+                    {'Delete'}
+                  </button>
+                </div>
+              )}
+            </div>
+            <button className={styles.card} onClick={handleNextImage}>
+              {'Next'}
+            </button>
+          </div>
+          ) : (
+            <h1>{'No images available.'}</h1>
+          )}
+          <input
+            type="file"
+            onChange={(e) => {
+              setImageUpload(e.target.files?.[0] ?? null);
+            }}
+            className={styles.input}
+          />
+
+          <button onClick={addImage} className={styles.card}>
+           {'Upload Image'}
+          </button>
+
           <button className={styles.card} onClick={onSave}>
             Update Hotel
           </button>
@@ -221,6 +353,18 @@ export default function HotelPage({ id }: { id: string }) {
   };
 
   const renderUser = () => {
+    const handlePreviousImage = () => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === 0 ? imageURLs.current.length - 1 : prevIndex - 1
+      );
+    };
+  
+    const handleNextImage = () => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === imageURLs.current.length - 1 ? 0 : prevIndex + 1
+      );
+    };
+
     return (
       <>
         <Head>
@@ -237,6 +381,22 @@ export default function HotelPage({ id }: { id: string }) {
           <p className={styles.description}>
             Description: {hotelData.current?.description}
           </p>
+          {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
+          <div className={styles.imageContainer}>
+            <button className={styles.previousButton} onClick={handlePreviousImage}>
+              Previous
+            </button>
+            <img
+              className={styles.image}
+              src={imageURLs.current[currentImageIndex]}
+            />
+            <button className={styles.nextButton} onClick={handleNextImage}>
+              Next
+            </button>
+          </div>
+          ) : (
+            <h1>{'No images available.'}</h1>
+          )}
           <table className={styles.table}>
             <thead>
               <tr>
