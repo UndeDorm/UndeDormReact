@@ -237,7 +237,18 @@ export const addReservationRequest = ({
     .catch(onFailure);
 };
 
-export const getReservationRequestsByRoom = async (roomId : String) => {
+export const getReservationRequest = async (id: string) => {
+  const docRef = doc(firebaseDb, 'reservationRequests', id);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data() as ReservationRequest;
+  } else {
+    return Promise.reject('Reservation request not found');
+  }
+};
+
+export const getReservationRequestsByRoom = async (roomId: String) => {
   const reservationRequestsRef = collection(firebaseDb, 'reservationRequests');
   const reservationRequestsSnap = await getDocs(reservationRequestsRef);
 
@@ -245,12 +256,12 @@ export const getReservationRequestsByRoom = async (roomId : String) => {
     return reservationRequestsSnap.docs
       .map((doc) => doc.data())
       .filter((data) => data.roomId === roomId) as ReservationRequest[];
-  } else {  
+  } else {
     return null;
   }
 };
 
-export const getReservationRequestsByUser = async (userId : String) => {
+export const getReservationRequestsByUser = async (userId: String) => {
   const reservationRequestsRef = collection(firebaseDb, 'reservationRequests');
   const reservationRequestsSnap = await getDocs(reservationRequestsRef);
 
@@ -258,12 +269,12 @@ export const getReservationRequestsByUser = async (userId : String) => {
     return reservationRequestsSnap.docs
       .map((doc) => doc.data())
       .filter((data) => data.userId === userId) as ReservationRequest[];
-  } else {  
+  } else {
     return null;
   }
-}
+};
 
-export const getReservationRequestsByOwner = async (ownerId : String) => {
+export const getReservationRequestsByOwner = async (ownerId: String) => {
   const reservationRequestsRef = collection(firebaseDb, 'reservationRequests');
   const reservationRequestsSnap = await getDocs(reservationRequestsRef);
 
@@ -271,10 +282,10 @@ export const getReservationRequestsByOwner = async (ownerId : String) => {
     return reservationRequestsSnap.docs
       .map((doc) => doc.data())
       .filter((data) => data.ownerId === ownerId) as ReservationRequest[];
-  } else {  
+  } else {
     return null;
   }
-}
+};
 
 export const editReservationRequest = ({
   requestId,

@@ -83,8 +83,12 @@ export default function Profile() {
             return null;
           }
 
+          const onClick = () => {
+            router.push(`/request/${request.id}`);
+          };
+
           return (
-            <div key={request.id} className={styles.card}>
+            <div key={request.id} className={styles.card} onClick={onClick}>
               <h3>
                 {hotel.name}: {room.name}
               </h3>
