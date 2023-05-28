@@ -245,7 +245,7 @@ export default function HotelPage({ id }: { id: string }) {
             defaultValue={hotelLocationRef.current}
             onChange={(e) => (hotelLocationRef.current = e.target.value)}
           />
-          <h2>Description:</h2>
+          <h2>{'Description:'}</h2>
           <input
             type="text"
             className={styles.input}
@@ -259,11 +259,13 @@ export default function HotelPage({ id }: { id: string }) {
               {'Previous'}
             </button>
             <div style={{ position: 'relative', display: 'inline-block' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className={styles.image}
                 src={imageURLs.current[currentImageIndex]}
                 onMouseEnter={() => setShowDeleteButton(true)}
                 onMouseLeave={() => setShowDeleteButton(false)}
+                alt="Hotel Image"
               />
               {showDeleteButton && (
                 <div
@@ -329,7 +331,7 @@ export default function HotelPage({ id }: { id: string }) {
                       className={styles.card}
                       onClick={() => handleModifyRoom(room.id)}
                     >
-                      Modify
+                      {'Modify'}
                     </button>
                   </td>
                   <td className={styles.td}>
@@ -337,7 +339,7 @@ export default function HotelPage({ id }: { id: string }) {
                       className={styles.card}
                       onClick={() => handleDeleteRoom(room.id)}
                     >
-                      Delete
+                      {'Delete'}
                     </button>
                   </td>
                 </tr>
@@ -345,7 +347,7 @@ export default function HotelPage({ id }: { id: string }) {
             </tbody>
           </table>
           <button className={styles.card} onClick={handleAddRoom}>
-            Add room
+            {'Add room'}
           </button>
         </main>
       </>
@@ -373,7 +375,8 @@ export default function HotelPage({ id }: { id: string }) {
           <link rel="icon" href="/favicon.ico" />
         </Head>
 
-        <main className={styles.main}>
+        <main>
+          <br />
           <h1 className={styles.title}>Hotel {hotelData.current?.name}</h1>
           <p className={styles.description}>
             Location: {hotelData.current?.location}
@@ -383,14 +386,16 @@ export default function HotelPage({ id }: { id: string }) {
           </p>
           {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
           <div className={styles.imageContainer}>
-            <button className={styles.previousButton} onClick={handlePreviousImage}>
+            <button className={styles.card} onClick={handlePreviousImage}>
               Previous
             </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className={styles.image}
               src={imageURLs.current[currentImageIndex]}
+              alt="Hotel Image"
             />
-            <button className={styles.nextButton} onClick={handleNextImage}>
+            <button className={styles.card} onClick={handleNextImage}>
               Next
             </button>
           </div>

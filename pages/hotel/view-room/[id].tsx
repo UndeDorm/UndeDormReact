@@ -105,14 +105,16 @@ export default function ModifyRoom({ id }: { id: string }) {
 
         {(roomData.current?.images && roomData.current?.images.length > 0) ? (
         <div className={styles.imageContainer}>
-          <button className={styles.previousButton} onClick={handlePreviousImage}>
+          <button className={styles.card} onClick={handlePreviousImage}>
             Previous
           </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className={styles.image}
             src={imageURLs.current[currentImageIndex]}
+            alt="Room image"
           />
-          <button className={styles.nextButton} onClick={handleNextImage}>
+          <button className={styles.card} onClick={handleNextImage}>
             Next
           </button>
         </div>
