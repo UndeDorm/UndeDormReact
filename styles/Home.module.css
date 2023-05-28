@@ -2,6 +2,12 @@
   padding: 0 2rem;
 }
 
+.row{
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: row;
+}
+
 .main {
   min-height: 100vh;
   padding: 4rem 0;

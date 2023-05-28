@@ -43,7 +43,7 @@ export interface Reservation {
 }
 
 export interface Message {
-  reservationId: string;
+  id: string;
   senderId: string;
   timestamp: number;
   text: string;
