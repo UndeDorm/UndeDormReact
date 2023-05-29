@@ -265,11 +265,13 @@ export default function HotelPage({ id }: { id: string }) {
               {'Previous'}
             </button>
             <div style={{ position: 'relative', display: 'inline-block' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className={styles.image}
                 src={imageURLs.current[currentImageIndex]}
                 onMouseEnter={() => setShowDeleteButton(true)}
                 onMouseLeave={() => setShowDeleteButton(false)}
+                alt="Hotel Image"
               />
               {showDeleteButton && (
                 <div
@@ -389,11 +391,13 @@ export default function HotelPage({ id }: { id: string }) {
             >
               Previous
             </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               className={styles.image}
               src={imageURLs.current[currentImageIndex]}
+              alt="Hotel Image"
             />
-            <button className={styles.nextButton} onClick={handleNextImage}>
+            <button className={styles.card} onClick={handleNextImage}>
               Next
             </button>
           </div>

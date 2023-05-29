@@ -150,3 +150,7 @@
   align-items: center;
   justify-content: center;
 }
+
+.image {
+  height: 500px;
+}
