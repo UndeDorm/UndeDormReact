@@ -14,7 +14,13 @@ import { firebaseDb, storage } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import styles from '../../styles/Home.module.css';
 import { Hotel, Room } from '../../src/utils/types';
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from 'firebase/storage';
+import Image from 'next/image';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -53,13 +59,18 @@ export default function HotelPage({ id }: { id: string }) {
               .then((data) => {
                 roomsData.current =
                   data?.filter((room) => room.hotelId === id) ?? [];
-                  
-                if (hotelData.current?.images && hotelData.current?.images.length > 0) {
-                  const imageUrlsPromises = hotelData.current?.images.map((imageId) => {
-                    const imageRef = ref(storage, `hotels/${id}/${imageId}`);
-                    return getDownloadURL(imageRef);
-                  });
-          
+
+                if (
+                  hotelData.current?.images &&
+                  hotelData.current?.images.length > 0
+                ) {
+                  const imageUrlsPromises = hotelData.current?.images.map(
+                    (imageId) => {
+                      const imageRef = ref(storage, `hotels/${id}/${imageId}`);
+                      return getDownloadURL(imageRef);
+                    }
+                  );
+
                   Promise.all(imageUrlsPromises)
                     .then((imageUrls) => {
                       imageURLs.current = imageUrls;
@@ -68,7 +79,7 @@ export default function HotelPage({ id }: { id: string }) {
                     .catch((error) => {
                       console.error('Error getting image URLs', error);
                       setIsLoading(false);
-                    })
+                    });
                 } else {
                   setIsLoading(false);
                 }
@@ -76,7 +87,7 @@ export default function HotelPage({ id }: { id: string }) {
               .catch((error) => {
                 console.error('Error getting rooms', error);
                 setIsLoading(false);
-              })
+              });
           } else {
             setIsLoading(false);
           }
@@ -112,11 +123,11 @@ export default function HotelPage({ id }: { id: string }) {
 
   const addImage = () => {
     if (imageUpload == null) {
-      alert("Please select an image!");
+      alert('Please select an image!');
       return;
     }
     images.current.push(imageUpload);
-    alert("Image uploaded successfully!");
+    alert('Image uploaded successfully!');
   };
 
   const onSave = () => {
@@ -162,7 +173,7 @@ export default function HotelPage({ id }: { id: string }) {
     }
 
     if (images.current.length > 0) {
-      const updatedImages = [...originalHotelData.current?.images || []];
+      const updatedImages = [...(originalHotelData.current?.images || [])];
 
       images.current.forEach((image) => {
         const uniqueId = image.name + Date.now().toString();
@@ -171,7 +182,7 @@ export default function HotelPage({ id }: { id: string }) {
         uploadBytes(imageRef, image);
       });
 
-      newData = { ...newData, images: updatedImages};
+      newData = { ...newData, images: updatedImages };
     }
 
     if (Object.keys(newData).length === 0) {
@@ -193,7 +204,7 @@ export default function HotelPage({ id }: { id: string }) {
         prevIndex === 0 ? imageURLs.current.length - 1 : prevIndex - 1
       );
     };
-  
+
     const handleNextImage = () => {
       setCurrentImageIndex((prevIndex) =>
         prevIndex === imageURLs.current.length - 1 ? 0 : prevIndex + 1
@@ -204,7 +215,7 @@ export default function HotelPage({ id }: { id: string }) {
       console.log('deleteImage');
       const imageId = hotelData.current?.images[currentImageIndex];
       const imageRef = ref(storage, `hotels/${id}/${imageId}`);
-      const updatedImages = [...hotelData.current?.images || []];
+      const updatedImages = [...(hotelData.current?.images || [])];
       updatedImages.splice(currentImageIndex, 1);
       editHotel({
         hotelId: id,
@@ -214,46 +225,41 @@ export default function HotelPage({ id }: { id: string }) {
           console.error('Error deleting image:', error);
         },
       });
-      deleteObject(imageRef).then(() => {
-        alert('Image deleted successfully!');
-        router.reload();
-      }).catch((error) => {
-        console.error('Error deleting image:', error);
-      });
-    }
+      deleteObject(imageRef)
+        .then(() => {
+          alert('Image deleted successfully!');
+          router.reload();
+        })
+        .catch((error) => {
+          console.error('Error deleting image:', error);
+        });
+    };
 
     return (
       <>
-        <Head>
-          <title>Unde Dorm</title>
-          <meta name="description" content="Generated by create next app" />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+        <h1 className={styles.title}>{'Your Hotel'}</h1>
+        <input
+          type="text"
+          className={styles.input}
+          defaultValue={originalHotelData.current?.name}
+          onChange={(e) => (hotelNameRef.current = e.target.value)}
+        />
+        <h2>{'Location:'}</h2>
+        <input
+          type="text"
+          className={styles.input}
+          defaultValue={hotelLocationRef.current}
+          onChange={(e) => (hotelLocationRef.current = e.target.value)}
+        />
+        <h2>Description:</h2>
+        <input
+          type="text"
+          className={styles.input}
+          defaultValue={hotelDescriptionRef.current}
+          onChange={(e) => (hotelDescriptionRef.current = e.target.value)}
+        />
 
-        <main className={styles.main}>
-          <h1 className={styles.title}>{'Your Hotel'}</h1>
-          <input
-            type="text"
-            className={styles.input}
-            defaultValue={originalHotelData.current?.name}
-            onChange={(e) => (hotelNameRef.current = e.target.value)}
-          />
-          <h2>{'Location:'}</h2>
-          <input
-            type="text"
-            className={styles.input}
-            defaultValue={hotelLocationRef.current}
-            onChange={(e) => (hotelLocationRef.current = e.target.value)}
-          />
-          <h2>{'Description:'}</h2>
-          <input
-            type="text"
-            className={styles.input}
-            defaultValue={hotelDescriptionRef.current}
-            onChange={(e) => (hotelDescriptionRef.current = e.target.value)}
-          />
-
-          {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
+        {hotelData.current?.images && hotelData.current?.images.length > 0 ? (
           <div className={styles.imageContainer}>
             <button className={styles.card} onClick={handlePreviousImage}>
               {'Previous'}
@@ -277,9 +283,11 @@ export default function HotelPage({ id }: { id: string }) {
                     zIndex: 1,
                   }}
                 >
-                  <button onClick={handleDeleteImage}
-                  className={styles.card}
-                  onMouseEnter={() => setShowDeleteButton(true)}>
+                  <button
+                    onClick={handleDeleteImage}
+                    className={styles.card}
+                    onMouseEnter={() => setShowDeleteButton(true)}
+                  >
                     {'Delete'}
                   </button>
                 </div>
@@ -289,67 +297,66 @@ export default function HotelPage({ id }: { id: string }) {
               {'Next'}
             </button>
           </div>
-          ) : (
-            <h1>{'No images available.'}</h1>
-          )}
-          <input
-            type="file"
-            onChange={(e) => {
-              setImageUpload(e.target.files?.[0] ?? null);
-            }}
-            className={styles.input}
-          />
+        ) : (
+          <h1>{'No images available.'}</h1>
+        )}
+        <input
+          type="file"
+          onChange={(e) => {
+            setImageUpload(e.target.files?.[0] ?? null);
+          }}
+          className={styles.input}
+        />
 
-          <button onClick={addImage} className={styles.card}>
-           {'Upload Image'}
-          </button>
+        <button onClick={addImage} className={styles.card}>
+          {'Upload Image'}
+        </button>
 
-          <button className={styles.card} onClick={onSave}>
-            Update Hotel
-          </button>
+        <button className={styles.card} onClick={onSave}>
+          Update Hotel
+        </button>
 
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Number Of Beds</th>
-                <th>Price</th>
-                <th>Benefits</th>
-                <th>Modify</th>
-                <th>Delete</th>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Number Of Beds</th>
+              <th>Price</th>
+              <th>Benefits</th>
+              <th>Modify</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody>
+            {roomsData.current.map((room) => (
+              <tr key={room.id}>
+                <td className={styles.td}>{room.name}</td>
+                <td className={styles.td}>{room.beds}</td>
+                <td className={styles.td}>{room.pricePerNight}</td>
+                <td className={styles.td}>{room.benefits}</td>
+                <td className={styles.td}>
+                  <button
+                    className={styles.card}
+                    onClick={() => handleModifyRoom(room.id)}
+                  >
+                    Modify
+                  </button>
+                </td>
+                <td className={styles.td}>
+                  <button
+                    className={styles.card}
+                    onClick={() => handleDeleteRoom(room.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {roomsData.current.map((room) => (
-                <tr key={room.id}>
-                  <td className={styles.td}>{room.name}</td>
-                  <td className={styles.td}>{room.beds}</td>
-                  <td className={styles.td}>{room.pricePerNight}</td>
-                  <td className={styles.td}>{room.benefits}</td>
-                  <td className={styles.td}>
-                    <button
-                      className={styles.card}
-                      onClick={() => handleModifyRoom(room.id)}
-                    >
-                      {'Modify'}
-                    </button>
-                  </td>
-                  <td className={styles.td}>
-                    <button
-                      className={styles.card}
-                      onClick={() => handleDeleteRoom(room.id)}
-                    >
-                      {'Delete'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button className={styles.card} onClick={handleAddRoom}>
-            {'Add room'}
-          </button>
-        </main>
+            ))}
+          </tbody>
+        </table>
+        <button className={styles.card} onClick={handleAddRoom}>
+          Add room
+        </button>
       </>
     );
   };
@@ -360,7 +367,7 @@ export default function HotelPage({ id }: { id: string }) {
         prevIndex === 0 ? imageURLs.current.length - 1 : prevIndex - 1
       );
     };
-  
+
     const handleNextImage = () => {
       setCurrentImageIndex((prevIndex) =>
         prevIndex === imageURLs.current.length - 1 ? 0 : prevIndex + 1
@@ -369,24 +376,19 @@ export default function HotelPage({ id }: { id: string }) {
 
     return (
       <>
-        <Head>
-          <title>Unde Dorm</title>
-          <meta name="description" content="Generated by create next app" />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-
-        <main>
-          <br />
-          <h1 className={styles.title}>Hotel {hotelData.current?.name}</h1>
-          <p className={styles.description}>
-            Location: {hotelData.current?.location}
-          </p>
-          <p className={styles.description}>
-            Description: {hotelData.current?.description}
-          </p>
-          {(hotelData.current?.images && hotelData.current?.images.length > 0) ? (
+        <h1 className={styles.title}>Hotel {hotelData.current?.name}</h1>
+        <p className={styles.description}>
+          Location: {hotelData.current?.location}
+        </p>
+        <p className={styles.description}>
+          Description: {hotelData.current?.description}
+        </p>
+        {hotelData.current?.images && hotelData.current?.images.length > 0 ? (
           <div className={styles.imageContainer}>
-            <button className={styles.card} onClick={handlePreviousImage}>
+            <button
+              className={styles.previousButton}
+              onClick={handlePreviousImage}
+            >
               Previous
             </button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -399,39 +401,38 @@ export default function HotelPage({ id }: { id: string }) {
               Next
             </button>
           </div>
-          ) : (
-            <h1>{'No images available.'}</h1>
-          )}
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Number Of Beds</th>
-                <th>Price</th>
-                <th>Benefits</th>
-                <th>View</th>
+        ) : (
+          <h1>{'No images available.'}</h1>
+        )}
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Number Of Beds</th>
+              <th>Price</th>
+              <th>Benefits</th>
+              <th>View</th>
+            </tr>
+          </thead>
+          <tbody>
+            {roomsData.current.map((room) => (
+              <tr key={room.id}>
+                <td className={styles.td}>{room.name}</td>
+                <td className={styles.td}>{room.beds}</td>
+                <td className={styles.td}>{room.pricePerNight}</td>
+                <td className={styles.td}>{room.benefits}</td>
+                <td className={styles.td}>
+                  <button
+                    className={styles.card}
+                    onClick={() => handleViewRoom(room.id)}
+                  >
+                    View
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {roomsData.current.map((room) => (
-                <tr key={room.id}>
-                  <td className={styles.td}>{room.name}</td>
-                  <td className={styles.td}>{room.beds}</td>
-                  <td className={styles.td}>{room.pricePerNight}</td>
-                  <td className={styles.td}>{room.benefits}</td>
-                  <td className={styles.td}>
-                    <button
-                      className={styles.card}
-                      onClick={() => handleViewRoom(room.id)}
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </main>
+            ))}
+          </tbody>
+        </table>
       </>
     );
   };

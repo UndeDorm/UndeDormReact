@@ -83,8 +83,12 @@ export default function Profile() {
             return null;
           }
 
+          const onClick = () => {
+            router.push(`/request/${request.id}`);
+          };
+
           return (
-            <div key={request.id} className={styles.card}>
+            <div key={request.id} className={styles.card} onClick={onClick}>
               <h3>
                 {hotel.name}: {room.name}
               </h3>
@@ -96,27 +100,18 @@ export default function Profile() {
                   <p className={styles.greenText}>
                     Status: {request.requestStatus}
                   </p>
-                  <button onClick={() => handleCancelRequest(request.id)}>
-                    Cancel
-                  </button>
                 </>
               ) : request.requestStatus === 'pending' ? (
                 <>
                   <p className={styles.highlight}>
                     Status: {request.requestStatus}
                   </p>
-                  <button onClick={() => handleCancelRequest(request.id)}>
-                    Cancel
-                  </button>
                 </>
               ) : (
                 <>
                   <p className={styles.redText}>
                     Status: {request.requestStatus}
                   </p>
-                  <button onClick={() => handleDeleteRequest(request.id)}>
-                    Delete
-                  </button>
                 </>
               )}
             </div>
@@ -124,35 +119,6 @@ export default function Profile() {
         })}
       </>
     );
-  };
-
-  const handleCancelRequest = async (reqId: any) => {
-    const onSuccess = () => {
-      console.log('Reservation cancelled!');
-      router.reload();
-    };
-    const onFailure = (error: any) => {
-      console.log('Error cancelling reservation!');
-    };
-    let newData = {};
-    newData = { ...newData, requestStatus: 'cancelled' };
-    editReservationRequest({
-      requestId: reqId,
-      newData,
-      onSuccess,
-      onFailure,
-    });
-  };
-
-  const handleDeleteRequest = async (reqId: string) => {
-    try {
-      await deleteDoc(doc(firebaseDb, 'reservationRequests', reqId));
-      await deleteDoc(doc(firebaseDb, 'reservations', reqId));
-      console.log('Reservation request deleted successfully!');
-      router.reload();
-    } catch (error) {
-      console.error('Error deleting reservation request:', error);
-    }
   };
 
   return (

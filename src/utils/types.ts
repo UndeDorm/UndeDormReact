@@ -43,10 +43,14 @@ export interface Reservation {
 }
 
 export interface Message {
-  reservationId: string;
+  id: string;
   senderId: string;
   timestamp: number;
   text: string;
 }
 
-export type ReservationStatus = 'pending' | 'accepted' | 'declined' | 'canceled';
+export type ReservationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'cancelled';

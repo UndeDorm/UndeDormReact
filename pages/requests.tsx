@@ -5,13 +5,10 @@ import { AuthContext } from '../src/providers/auth/AuthProvider';
 import styles from '../styles/Requests.module.css';
 import { Hotel, ReservationRequest, Room } from '../src/utils/types';
 import {
-  editReservationRequest,
   getHotels,
   getReservationRequestsByOwner,
   getRooms,
 } from '../src/firebase/database';
-import { deleteDoc, doc } from 'firebase/firestore';
-import { firebaseDb } from '../src/firebase/firebase';
 
 export default function Profile() {
   const { state } = useContext(AuthContext);
@@ -59,71 +56,6 @@ export default function Profile() {
     return dateObject.toLocaleString().split(',')[0];
   };
 
-  const handleAcceptRequest = async (reqId: any) => {
-    const onSuccess = () => {
-      console.log('Reservation accepted!');
-      router.reload();
-    };
-    const onFailure = (error: any) => {
-      console.log('Error accepting reservation!');
-    };
-    let newData = {};
-    newData = { ...newData, requestStatus: 'accepted' };
-    editReservationRequest({
-      requestId: reqId,
-      newData,
-      onSuccess,
-      onFailure,
-    });
-  };
-
-  const handleDeclineRequest = async (reqId: any) => {
-    const onSuccess = () => {
-      console.log('Reservation declined!');
-      router.reload();
-    };
-    const onFailure = (error: any) => {
-      console.log('Error declining reservation!');
-    };
-    let newData = {};
-    newData = { ...newData, requestStatus: 'declined' };
-    editReservationRequest({
-      requestId: reqId,
-      newData,
-      onSuccess,
-      onFailure,
-    });
-  };
-
-  const handleDeleteRequest = async (reqId: string) => {
-    try {
-      await deleteDoc(doc(firebaseDb, 'reservationRequests', reqId));
-      await deleteDoc(doc(firebaseDb, 'reservations', reqId));
-      console.log('Reservation request deleted successfully!');
-      router.reload();
-    } catch (error) {
-      console.error('Error deleting reservation request:', error);
-    }
-  };
-
-  const handleCancelRequest = async (reqId: any) => {
-    const onSuccess = () => {
-      console.log('Reservation cancelled!');
-      router.reload();
-    };
-    const onFailure = (error: any) => {
-      console.log('Error cancelling reservation!');
-    };
-    let newData = {};
-    newData = { ...newData, requestStatus: 'cancelled' };
-    editReservationRequest({
-      requestId: reqId,
-      newData,
-      onSuccess,
-      onFailure,
-    });
-  };
-
   const renderReceivedRequests = () => {
     if (isLoading) {
       return <p>{'Loading...'}</p>;
@@ -144,8 +76,12 @@ export default function Profile() {
             return null;
           }
 
+          const onClick = () => {
+            router.push(`/request/${request.id}`);
+          };
+
           return (
-            <div key={request.id} className={styles.card}>
+            <div key={request.id} className={styles.card} onClick={onClick}>
               <h3>
                 {hotel.name}: {room.name}
               </h3>
@@ -161,30 +97,18 @@ export default function Profile() {
                   <p className={styles.highlight}>
                     {`Status: ${request.requestStatus}`}
                   </p>
-                  <button onClick={() => handleAcceptRequest(request.id)}>
-                    {'Accept'}
-                  </button>
-                  <button onClick={() => handleDeclineRequest(request.id)}>
-                    {'Decline'}
-                  </button>
                 </>
               ) : request.requestStatus === 'accepted' ? (
                 <>
                   <p className={styles.greenText}>
                     Status: {request.requestStatus}
                   </p>
-                  <button onClick={() => handleCancelRequest(request.id)}>
-                    Cancel
-                  </button>
                 </>
               ) : (
                 <>
                   <p className={styles.redText}>
                     {`Status: ${request.requestStatus}`}
                   </p>
-                  <button onClick={() => handleDeleteRequest(request.id)}>
-                    {'Delete'}
-                  </button>
                 </>
               )}
             </div>
@@ -204,14 +128,7 @@ export default function Profile() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>{'Requests'}</h1>
-        {isLoading ? (
-          <p>{'Loading...'}</p>
-        ) : (
-          <>
-            <h1>{'Received requests:'}</h1>
-            {renderReceivedRequests()}
-          </>
-        )}
+        {isLoading ? <p>{'Loading...'}</p> : <>{renderReceivedRequests()}</>}
       </main>
     </div>
   );
