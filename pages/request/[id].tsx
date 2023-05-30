@@ -1,4 +1,6 @@
+import { remove } from 'firebase/database';
 import { deleteDoc, doc } from 'firebase/firestore';
+import { ref } from 'firebase/database';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -10,7 +12,7 @@ import {
   getRoom,
   getUser,
 } from '../../src/firebase/database';
-import { firebaseDb } from '../../src/firebase/firebase';
+import { firebaseDb, realtimeDb } from '../../src/firebase/firebase';
 import { AuthContext } from '../../src/providers/auth/AuthProvider';
 import { getAge, transformTimestampToDate } from '../../src/utils/time';
 import { BasicUser, ReservationRequest, Room } from '../../src/utils/types';
@@ -103,8 +105,9 @@ const RequestPage = ({ id }: { id: string }) => {
     try {
       await deleteDoc(doc(firebaseDb, 'reservationRequests', reqId));
       await deleteDoc(doc(firebaseDb, 'reservations', reqId));
+      remove(ref(realtimeDb, `messages/${reqId}`));
       console.log('Reservation request deleted!');
-      router.push('/requests');
+      router.back();
     } catch (error) {
       console.error('Error deleting reservation request:', error);
     }
@@ -163,52 +166,83 @@ const RequestPage = ({ id }: { id: string }) => {
             <p className={styles.description}>
               {`Status: ${requestData?.requestStatus}`}
             </p>
-
-            {requestData?.requestStatus === 'pending' ? (
+            
+            {state.user?.id === requestData?.userId ? (
               <div className={styles.grid}>
+              {(requestData?.requestStatus === 'cancelled' || requestData?.requestStatus === 'declined') && (
+              <button
+                className={styles.card}
+                onClick={() => {
+                  handleDeleteRequest(id);
+                }}
+              >
+                <h3>Delete &rarr;</h3>
+                <p>Delete this request.</p>
+              </button>
+              )}
+              {(requestData?.requestStatus === 'accepted' || requestData?.requestStatus === 'pending') && (
                 <button
                   className={styles.card}
                   onClick={() => {
-                    handleAcceptRequest(id);
+                    handleCancelRequest(id);
                   }}
                 >
-                  <h3>Approve &rarr;</h3>
-                  <p>Approve this request.</p>
+                  <h3>Cancel &rarr;</h3>
+                  <p>Cancel this request.</p>
                 </button>
-
-                <button
-                  className={styles.card}
-                  onClick={() => {
-                    handleDeclineRequest(id);
-                  }}
-                >
-                  <h3>Reject &rarr;</h3>
-                  <p>Reject this request.</p>
-                </button>
+              )}
               </div>
             ) : (
-              <div className={styles.grid}>
-                <button
-                  className={styles.card}
-                  onClick={() => {
-                    handleDeleteRequest(id);
-                  }}
-                >
-                  <h3>Delete &rarr;</h3>
-                  <p>Delete this request.</p>
-                </button>
-                {requestData?.requestStatus === 'accepted' && (
+            <>
+              {requestData?.requestStatus === 'pending' ? (
+                <div className={styles.grid}>
                   <button
                     className={styles.card}
                     onClick={() => {
-                      handleCancelRequest(id);
+                      handleAcceptRequest(id);
                     }}
                   >
-                    <h3>Cancel &rarr;</h3>
-                    <p>Cancel this request.</p>
+                    <h3>Approve &rarr;</h3>
+                    <p>Approve this request.</p>
                   </button>
-                )}
-              </div>
+
+                  <button
+                    className={styles.card}
+                    onClick={() => {
+                      handleDeclineRequest(id);
+                    }}
+                  >
+                    <h3>Reject &rarr;</h3>
+                    <p>Reject this request.</p>
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.grid}>
+                  {requestData?.requestStatus === 'cancelled' && (
+                  <button
+                    className={styles.card}
+                    onClick={() => {
+                      handleDeleteRequest(id);
+                    }}
+                  >
+                    <h3>Delete &rarr;</h3>
+                    <p>Delete this request.</p>
+                  </button>
+                  )}
+                  {(requestData?.requestStatus === 'accepted') && (
+                    <button
+                      className={styles.card}
+                      onClick={() => {
+                        handleCancelRequest(id);
+                      }}
+                    >
+                      <h3>Cancel &rarr;</h3>
+                      <p>Cancel this request.</p>
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
             )}
           </>
         )}
