@@ -6,7 +6,15 @@ import { getUser } from '../src/firebase/database';
 import cookie from 'cookie';
 import Topbar from '../src/components/Topbar/Topbar';
 
-const App = ({ Component, pageProps, uuid, profile }: AppProps) => {
+const App = ({
+  Component,
+  pageProps,
+  uuid,
+  profile,
+}: AppProps & {
+  uuid: string | undefined;
+  profile: any;
+}) => {
   return (
     <AuthProvider user={profile} isLogged={!!uuid}>
       <Topbar />
@@ -15,10 +23,16 @@ const App = ({ Component, pageProps, uuid, profile }: AppProps) => {
   );
 };
 
-App.getInitialProps = async ({ Component, ctx }) => {
+App.getInitialProps = async ({
+  Component,
+  ctx,
+}: {
+  Component: any;
+  ctx: any;
+}) => {
   let uuid;
   let profile;
-  let cookies = {};
+  let cookies: any = {};
 
   try {
     if (ctx.req) {
