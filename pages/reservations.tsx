@@ -131,14 +131,7 @@ export default function Profile() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>Reservations</h1>
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : (
-          <>
-            <h1>My reservations:</h1>
-            {renderMyReservations()}
-          </>
-        )}
+        {isLoading ? <p>Loading...</p> : <>{renderMyReservations()}</>}
       </main>
     </div>
   );

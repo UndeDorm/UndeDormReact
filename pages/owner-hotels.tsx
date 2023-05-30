@@ -69,12 +69,14 @@ export default function HotelList() {
           return (
             <div
               key={hotel.id}
-              className={styles.card}
+              className={styles.card + ' ' + styles.row}
               onClick={() => handleModify(hotel.id)}
             >
-              <h3>{hotel.name}</h3>
-              <p>{hotel.description}</p>
-              <p>📍 {hotel.location}</p>
+              <div>
+                <h3>{hotel.name}</h3>
+                <p>{hotel.description}</p>
+                <p>📍 {hotel.location}</p>
+              </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
