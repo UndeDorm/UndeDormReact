@@ -1,7 +1,13 @@
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from 'firebase/storage';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
+import ImagePicker from '../../../src/components/ImagePicker/ImagePicker';
 import { editRoom, getHotel, getRoom } from '../../../src/firebase/database';
 import { storage } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
@@ -20,7 +26,6 @@ export default function ModifyRoom({ id }: { id: string }) {
   const hotelData = useRef<Hotel>();
   const hotelOwnerId = useRef<string>();
   const images = useRef<File[]>([]);
-  const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const imageURLs = useRef<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -42,19 +47,20 @@ export default function ModifyRoom({ id }: { id: string }) {
           roomBenefitsRef.current = roomData.current.benefits;
 
           if (roomData.current) {
-            getHotel(roomData.current.hotelId)
-              .then((data) => {
-                hotelData.current = data;
-                hotelOwnerId.current = data.ownerId ?? '';
-              })
+            getHotel(roomData.current.hotelId).then((data) => {
+              hotelData.current = data;
+              hotelOwnerId.current = data.ownerId ?? '';
+            });
           }
 
           if (roomData.current?.images && roomData.current?.images.length > 0) {
-            const imageUrlsPromises = roomData.current?.images.map((imageId) => {
-              const imageRef = ref(storage, `rooms/${id}/${imageId}`);
-              return getDownloadURL(imageRef);
-            });
-    
+            const imageUrlsPromises = roomData.current?.images.map(
+              (imageId) => {
+                const imageRef = ref(storage, `rooms/${id}/${imageId}`);
+                return getDownloadURL(imageRef);
+              }
+            );
+
             Promise.all(imageUrlsPromises)
               .then((imageUrls) => {
                 imageURLs.current = imageUrls;
@@ -63,7 +69,7 @@ export default function ModifyRoom({ id }: { id: string }) {
               .catch((error) => {
                 console.error('Error getting image URLs', error);
                 setIsLoading(false);
-              })
+              });
           } else {
             setIsLoading(false);
           }
@@ -75,19 +81,10 @@ export default function ModifyRoom({ id }: { id: string }) {
     }
   }, [id, router, state]);
 
-  const addImage = () => {
-    if (imageUpload == null) {
-      alert("Please select an image!");
-      return;
-    }
-    images.current.push(imageUpload);
-    alert("Image uploaded successfully!");
-  };
-
   const onSave = () => {
     const onSuccess = () => {
       alert('Room successfully modified!');
-      router.back();
+      router.push(`/hotel/${hotelData.current?.id}`);
     };
 
     const onFailure = (error: any) => {
@@ -133,7 +130,7 @@ export default function ModifyRoom({ id }: { id: string }) {
     }
 
     if (images.current.length > 0) {
-      const updatedImages = [...roomOriginalData.current?.images || []];
+      const updatedImages = [...(roomOriginalData.current?.images || [])];
 
       images.current.forEach((image) => {
         const uniqueId = image.name + Date.now().toString();
@@ -142,7 +139,7 @@ export default function ModifyRoom({ id }: { id: string }) {
         uploadBytes(imageRef, image);
       });
 
-      newData = { ...newData, images: updatedImages};
+      newData = { ...newData, images: updatedImages };
     }
 
     if (Object.keys(newData).length === 0) {
@@ -158,7 +155,7 @@ export default function ModifyRoom({ id }: { id: string }) {
         prevIndex === 0 ? imageURLs.current.length - 1 : prevIndex - 1
       );
     };
-  
+
     const handleNextImage = () => {
       setCurrentImageIndex((prevIndex) =>
         prevIndex === imageURLs.current.length - 1 ? 0 : prevIndex + 1
@@ -168,7 +165,7 @@ export default function ModifyRoom({ id }: { id: string }) {
     const handleDeleteImage = () => {
       const imageId = roomData.current?.images[currentImageIndex];
       const imageRef = ref(storage, `rooms/${id}/${imageId}`);
-      const updatedImages = [...roomData.current?.images || []];
+      const updatedImages = [...(roomData.current?.images || [])];
       updatedImages.splice(currentImageIndex, 1);
 
       editRoom({
@@ -177,16 +174,18 @@ export default function ModifyRoom({ id }: { id: string }) {
         onSuccess: () => {},
         onFailure: (error) => {
           console.error('Error deleting image:', error);
-        }
-      })
-
-      deleteObject(imageRef).then(() => {
-        alert('Image deleted successfully!');
-        router.reload();
-      }).catch((error) => {
-        console.error('Error deleting image:', error);
+        },
       });
-    }
+
+      deleteObject(imageRef)
+        .then(() => {
+          alert('Image deleted successfully!');
+          router.reload();
+        })
+        .catch((error) => {
+          console.error('Error deleting image:', error);
+        });
+    };
 
     return (
       <>
@@ -218,7 +217,7 @@ export default function ModifyRoom({ id }: { id: string }) {
           defaultValue={roomOriginalData.current?.benefits}
           onChange={(e) => (roomBenefitsRef.current = e.target.value)}
         />
-        {(roomData.current?.images && roomData.current?.images.length > 0) ? (
+        {roomData.current?.images && roomData.current?.images.length > 0 ? (
           <div className={styles.imageContainer}>
             <button className={styles.card} onClick={handlePreviousImage}>
               {'Previous'}
@@ -242,9 +241,11 @@ export default function ModifyRoom({ id }: { id: string }) {
                     zIndex: 1,
                   }}
                 >
-                  <button onClick={handleDeleteImage}
-                  className={styles.card}
-                  onMouseEnter={() => setShowDeleteButton(true)}>
+                  <button
+                    onClick={handleDeleteImage}
+                    className={styles.card}
+                    onMouseEnter={() => setShowDeleteButton(true)}
+                  >
                     {'Delete'}
                   </button>
                 </div>
@@ -254,20 +255,10 @@ export default function ModifyRoom({ id }: { id: string }) {
               {'Next'}
             </button>
           </div>
-          ) : (
-            <h1>{'No images available.'}</h1>
-          )}
-        <input
-            type="file"
-            onChange={(e) => {
-              setImageUpload(e.target.files?.[0] ?? null);
-            }}
-            className={styles.input}
-          />
-
-        <button onClick={addImage} className={styles.card}>
-          {'Upload Image'}
-        </button>
+        ) : (
+          <h1>{'No images available.'}</h1>
+        )}
+        <ImagePicker imagesUploadedRef={images} />
         <button onClick={onSave} className={styles.card}>
           {'Save'}
         </button>
@@ -289,9 +280,7 @@ export default function ModifyRoom({ id }: { id: string }) {
           {isLoading ? (
             <h1 className={styles.title}>{'Loading...'}</h1>
           ) : (
-            <>
-              {renderPage()}
-            </>
+            <>{renderPage()}</>
           )}
         </>
       </main>

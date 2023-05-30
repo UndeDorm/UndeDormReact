@@ -1,11 +1,4 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-} from 'firebase/firestore';
+import { deleteDoc, doc } from 'firebase/firestore';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
@@ -20,7 +13,7 @@ import {
   ref,
   uploadBytes,
 } from 'firebase/storage';
-import Image from 'next/image';
+import ImagePicker from '../../src/components/ImagePicker/ImagePicker';
 
 export default function HotelPage({ id }: { id: string }) {
   const { state } = useContext(AuthContext);
@@ -36,7 +29,6 @@ export default function HotelPage({ id }: { id: string }) {
   );
   const images = useRef<File[]>([]);
   const imageURLs = useRef<string[]>([]);
-  const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
@@ -119,15 +111,6 @@ export default function HotelPage({ id }: { id: string }) {
 
   const handleViewRoom = async (roomId: string) => {
     router.push(`/hotel/view-room/${roomId}`);
-  };
-
-  const addImage = () => {
-    if (imageUpload == null) {
-      alert('Please select an image!');
-      return;
-    }
-    images.current.push(imageUpload);
-    alert('Image uploaded successfully!');
   };
 
   const onSave = () => {
@@ -300,17 +283,7 @@ export default function HotelPage({ id }: { id: string }) {
         ) : (
           <h1>{'No images available.'}</h1>
         )}
-        <input
-          type="file"
-          onChange={(e) => {
-            setImageUpload(e.target.files?.[0] ?? null);
-          }}
-          className={styles.input}
-        />
-
-        <button onClick={addImage} className={styles.card}>
-          {'Upload Image'}
-        </button>
+        <ImagePicker imagesUploadedRef={images} />
 
         <button className={styles.card} onClick={onSave}>
           Update Hotel
@@ -385,10 +358,7 @@ export default function HotelPage({ id }: { id: string }) {
         </p>
         {hotelData.current?.images && hotelData.current?.images.length > 0 ? (
           <div className={styles.imageContainer}>
-            <button
-              className={styles.previousButton}
-              onClick={handlePreviousImage}
-            >
+            <button onClick={handlePreviousImage} className={styles.card}>
               Previous
             </button>
             {/* eslint-disable-next-line @next/next/no-img-element */}

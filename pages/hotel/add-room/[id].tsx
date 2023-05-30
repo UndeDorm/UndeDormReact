@@ -2,6 +2,7 @@ import { collection, doc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes } from 'firebase/storage';
 import router from 'next/router';
 import { useContext, useEffect, useRef, useState } from 'react';
+import ImagePicker from '../../../src/components/ImagePicker/ImagePicker';
 import { addRoom, getHotel } from '../../../src/firebase/database';
 import { firebaseDb, storage } from '../../../src/firebase/firebase';
 import { AuthContext } from '../../../src/providers/auth/AuthProvider';
@@ -19,7 +20,6 @@ export default function AddRoomPage({ id }: { id: string }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const images = useRef<File[]>([]);
   const uniqueImages = useRef<string[]>([]);
-  const [imageUpload, setImageUpload] = useState<File | null>(null);
 
   useEffect(() => {
     if (!state.isUserLoggedIn) {
@@ -39,19 +39,34 @@ export default function AddRoomPage({ id }: { id: string }) {
     }
   }, [id, state.isUserLoggedIn]);
 
-  const addImage = () => {
-    if (imageUpload == null) {
-      alert("Please select an image!");
-      return;
-    }
-    images.current.push(imageUpload);
-    alert("Image uploaded successfully!");
-  };
-
   const addRoomToDatabase = () => {
     const myCollection = collection(firebaseDb, 'rooms');
     const myDocRef = doc(myCollection);
     const roomId = myDocRef.id;
+
+    if (!hotelData.current) {
+      console.log('No hotel data!');
+      return;
+    }
+
+    if (hotelOwnerId.current !== state.user?.id) {
+      console.log('You are not the owner of this hotel!');
+      return;
+    }
+
+    if (
+      (noBeds.current && noBeds.current < 1) ||
+      (price.current && price.current < 1)
+    ) {
+      alert('Beds and price must be greater than 0');
+      return;
+    }
+
+    if (!roomName.current || !noBeds.current || !price.current) {
+      alert(noBeds.current);
+      alert('Please fill in all the fields');
+      return;
+    }
 
     images.current.forEach((image) => {
       const uniqueId = image.name + Date.now().toString();
@@ -72,7 +87,7 @@ export default function AddRoomPage({ id }: { id: string }) {
 
     const onSuccess = () => {
       console.log('Room added successfully');
-      router.back();
+      router.push(`/hotel/${id}`);
     };
     const onFailure = (error: any) => {
       console.log(error);
@@ -106,18 +121,9 @@ export default function AddRoomPage({ id }: { id: string }) {
           className={styles.input}
           onChange={(e) => (benefits.current = e.target.value)}
         />
-        <input
-        type="file"
-        onChange={(e) => {
-          setImageUpload(e.target.files?.[0] ?? null);
-        }}
-        className={styles.input}
-        />
-        <div className={styles.grid}>
-          <button onClick={addImage} className={styles.card}>
-            {'Upload Image'}
-          </button>
 
+        <ImagePicker imagesUploadedRef={images} />
+        <div className={styles.grid}>
           <button className={styles.card} onClick={addRoomToDatabase}>
             {'Add Room'}
           </button>
