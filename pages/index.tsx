@@ -1,7 +1,25 @@
 import Head from 'next/head';
+import { auth } from '../src/firebase/firebase';
 import styles from '../styles/Home.module.css';
+import { useContext } from 'react';
+import router from 'next/router';
+import Link from 'next/link';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
 
 export default function Home() {
+  const {
+    dispatch,
+    state: { isUserLoggedIn, user },
+  } = useContext(AuthContext);
+
+  const onSignIn = () => {
+    router.push('/sign-in');
+  };
+
+  const onSignUp = () => {
+    router.push('/sign-up');
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,38 +29,49 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="">UndeDorm</a>
-        </h1>
+        {!user && isUserLoggedIn ? (
+          <h1 className={styles.title}>{'Loading...'}</h1>
+        ) : (
+          <>
+            {
+              <h1 className={styles.title}>
+                {user?.firstName
+                  ? `Hello, ${user.firstName}! Welcome to `
+                  : 'Welcome to '}
+                <Link href="">{'UndeDorm'}</Link>
+              </h1>
+            }
 
-        <div className={styles.grid}>
-          <a href="/profile" className={styles.card}>
-            <h2>Profil &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+            {user && isUserLoggedIn && (
+              <div className={styles.grid}>
+                <Link href="/profile" className={styles.card}>
+                  <h2>{'Profile'} &rarr;</h2>
+                </Link>
 
-          <a href="/reservations" className={styles.card}>
-            <h2>Rezervari &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+                <Link href="/reservations" className={styles.card}>
+                  <h2>{'Reservations'} &rarr;</h2>
+                </Link>
 
-          <a href="/hotels" className={styles.card}>
-            <h2>Cauta hotel &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+                <Link href="/hotels" className={styles.card}>
+                  <h2>{'Search hotel'} &rarr;</h2>
+                </Link>
+              </div>
+            )}
 
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+            <div className={styles.grid}>
+              {!isUserLoggedIn && (
+                <button onClick={onSignIn} className={styles.card}>
+                  <p>Sign In</p>
+                </button>
+              )}
+              {!isUserLoggedIn && (
+                <button onClick={onSignUp} className={styles.card}>
+                  <p>Sign Up</p>
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

@@ -1,7 +1,86 @@
 import Head from 'next/head';
-import styles from '../styles/Home.module.css';
+import styles from '../styles/Hotels.module.css';
+import { SetStateAction, useContext, useEffect, useRef, useState } from 'react';
+import { AuthContext } from '../src/providers/auth/AuthProvider';
+import { useRouter } from 'next/router';
+import { firebaseDb, storage, storageRef } from '../src/firebase/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { getHotels } from '../src/firebase/database';
+import { Hotel } from '../src/utils/types';
 
 export default function HotelList() {
+  const { state } = useContext(AuthContext);
+  const router = useRouter();
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [locationFilter, setLocationFilter] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
+
+  const hotelsData = useRef<Hotel[]>([]);
+
+  useEffect(() => {
+    if (!state.isUserLoggedIn) {
+      console.log('You are not logged in!');
+      router.push('/');
+    } else {
+      getHotels()
+        .then((data) => {
+          hotelsData.current = data ?? [];
+        })
+        .catch((error) => {
+          console.error('Error getting hotels:', error);
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }, [router, state]);
+
+  const handleView = async (hotelId: string) => {
+    try {
+      router.push('/hotel/' + hotelId);
+    } catch (error) {
+      console.error('Error accessing hotel:', error);
+    }
+  };
+
+  const handleLocationFilterChange = (event: {
+    target: { value: SetStateAction<string> };
+  }) => {
+    setLocationFilter(event.target.value);
+  };
+
+  const handleNameFilterChange = (event: {
+    target: { value: SetStateAction<string> };
+  }) => {
+    setNameFilter(event.target.value);
+  };
+
+  const renderHotels = () => {
+    const locationFilteredHotels = hotelsData.current.filter((hotel) =>
+      hotel.location.toLowerCase().includes(locationFilter.toLowerCase())
+    );
+    const nameFilteredHotels = locationFilteredHotels.filter((hotel) =>
+      hotel.name.toLowerCase().includes(nameFilter.toLowerCase())
+    );
+
+    return (
+      <>
+        {nameFilteredHotels.map((hotel) => {
+          return (
+            <div
+              key={hotel.id}
+              className={styles.card}
+              onClick={() => handleView(hotel.id)}
+            >
+              <h3>{hotel.name}</h3>
+              <p>{hotel.description}</p>
+              <p>📍 {hotel.location}</p>
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -11,7 +90,30 @@ export default function HotelList() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Cautare de hoteluri</h1>
+        <>
+          <h1 className={styles.title}>{'Hotels list'}</h1>
+          {isLoading ? (
+            <h1 className={styles.title}>{'Loading...'}</h1>
+          ) : (
+            <>
+              <input
+                type="text"
+                className={styles.input}
+                defaultValue={locationFilter}
+                onChange={handleLocationFilterChange}
+                placeholder={'Filter by location'}
+              />
+              <input
+                type="text"
+                className={styles.input}
+                defaultValue={nameFilter}
+                onChange={handleNameFilterChange}
+                placeholder={'Filter by name'}
+              />
+              {renderHotels()}
+            </>
+          )}
+        </>
       </main>
     </div>
   );
