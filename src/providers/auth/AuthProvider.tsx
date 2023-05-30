@@ -35,7 +35,7 @@ export const AuthContext = createContext({
 const authReducer = (state = INITIAL_STATE, action: AuthProviderAction) => {
   switch (action.type) {
     case 'sign-in': {
-      Cookies.set('uuid', action?.payload?.uuid);
+      Cookies.set('uuid', action?.payload?.uuid ?? '');
       return {
         ...state,
         isUserLoggedIn: true,
@@ -88,7 +88,7 @@ const AuthProvider: React.FC<PropsWithChildren<AuthProviderProps>> = ({
 
   useEffect(() => {
     if (state.isUserLoggedIn) {
-      getUser(Cookies.get('uuid')).then((data) => {
+      getUser(Cookies.get('uuid') ?? '').then((data) => {
         if (data) {
           dispatch({ type: 'set-user', payload: { user: data } });
         }
